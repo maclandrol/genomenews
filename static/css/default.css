@@ -1,6 +1,124 @@
 
+body {
+    font-family: Verdana, Geneva, sans-serif;
+    font-size: 10pt;
+}
+
 #page {
     background-color: #f6f6ee;
-    width: 80%;
+    width: 85%;
+    margin: 0 auto;
+}
+
+#header {
+    background-color: #ADEF61; /* Lime green */
+    width: 100%;
+    height: 20px;
+    padding: 2px 0;
+}
+
+#header a {
+    text-decoration: none;
+}
+
+#header h1 {
+    display: inline-block;
+    position: relative;
+    bottom: 4px;
+    font-family: Verdana;
+    font-size: 14px;
+    padding: 0;
+    margin: 0;
+}
+
+#header a.logo {
+    border: 1px solid white;
+    margin-left: 2px;
+    display: inline-block;
+    height: 18px;
+    width: 18px;
+}
+
+#header #nav {
+    display: inline;
+    position: relative;
+    top: -4px;
+}
+
+#header #nav ul {
+    display: inline-block;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+#header #nav ul li {
+    display: inline;
+}
+
+#header #nav ul li a {
+    display: inline;
+    margin: 0 3px;
+}
+
+#header #user {
+    float: right;
+    margin: 2px 5px 0 0;
+}
+
+/* Content format */
+.entry {
+    height: 32px;
+    width: 85%;
+    margin: 5px 0 10px 0;
+    padding: 0 7px;
+}
+
+.entry .left {
+    height: 30px;
+    float: left;
+}
+
+.entry .right {
+    height: 30px;
+    clear: left;
+    margin: 0 0 0 5px;
+    display: inline-block;
+}
+
+.entry .domain,  .entry .bot, .entry .rank {
+    color: #828282; /* Gray */
+}
+
+.entry .domain {
+    font-size: 8pt;
+}
+
+.entry .bot {
+    font-size: 7pt;
+}
+
+.entry a.up {
+    text-indent: -999999px;
+    display: inline-block;
+    width: 10px;
+    height: 15px;
+    background: url("../images/grayarrow.gif") no-repeat center 3px;
+}
+
+/* Home format */
+p a#more {
+    margin-left: 20px;
+    color: #828282; /* Gray */
+    text-decoration: none;
+}
+
+hr {
+    border: 1px solid #ADEF61;
+}
+
+#footer {
+    text-align: center;
+    padding: 5px 20px 25px 20px;
 }
 

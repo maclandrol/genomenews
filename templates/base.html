@@ -7,6 +7,29 @@
   <head>
   <body>
     <div id="page">
+      <div id="header">
+        <a href="{% url 'home' %}" class="logo">
+          <img src="{% static 'images/logo.png' %}" alt="Logo" />
+        </a>
+        <h1>Genome News</h1>
+        <div id="nav">
+          {% block navlist %}
+          <ul>
+            <li><a href="">new</a> | </li>
+            <li><a href="">threads</a> | </li>
+            <li><a href="">comments</a> | </li>
+            <li><a href="">leaders</a> | </li>
+            <li><a href="">submit</a></li>
+          </ul>
+          {% endblock %}
+        </div>
+        <div id="user">
+          <span id="username"><a href="">admin</a></span>
+          <span id="karma">(31415)</span> |
+          <span id="logout"><a href="">logout</a></span>
+        </div>
+      </div> <!-- /#header //-->
+
       <div id="content">
       {% block content %}{% endblock %}
       </div><!-- /#content //-->
