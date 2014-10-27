@@ -122,3 +122,9 @@ hr {
     padding: 5px 20px 25px 20px;
 }
 
+#footer a {
+    color: black;
+    font-size: 9pt;
+    text-decoration: none;
+}
+
