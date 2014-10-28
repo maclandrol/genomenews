@@ -1,6 +1,6 @@
 
 from django.db import models
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User as DjangoUser
 
 
 class User(models.Model):
@@ -11,8 +11,11 @@ class User(models.Model):
     in the future).
 
     """
-    user = models.OneToOneField(User)
+    user = models.OneToOneField(DjangoUser)
     karma = models.IntegerField(default=0)
+
+    def __repr__(self):
+        return u"#{} {} ({})".format(self.pk, self.user.username, self.karma)
 
 
 class Post(models.Model):
@@ -25,18 +28,24 @@ class Post(models.Model):
 
     """
     owner = models.ForeignKey(User)
-    title = models.CharField()
-    url = models.CharField()
-    submitted_date = models.DateTimeField()
+    title = models.CharField(max_length=200)
+    url = models.CharField(max_length=200)
+    submitted_date = models.DateTimeField(auto_now_add=True)
     karma = models.IntegerField(default=0)
+
+    def upvote(self, user):
+
+        # Add the PostVote to the database.
+        pv = PostVote(voter=user, target=self)
+        pv.save()
 
 
 class Comment(models.Model):
     """Abstract class for comments. 
 
     """
-    commenter = models.ForeignKey(User)
-    comment = models.CharField()
+    owner = models.ForeignKey(User)
+    comment = models.CharField(max_length=10000)
     karma = models.IntegerField(default=0)
     class Meta:
         abstract = True
@@ -52,8 +61,15 @@ class PostComment(Comment):
 class CommentReply(Comment):
     """A comment for a given comment (reply).
 
+    :param root: Always contains a the PostComment which is the first node
+                 in the discussion tree.
+
+    :param target: The target comment (for replies). If this is NULL, we
+                   assume that this reply is to the root PostComment.
+
     """
-    target = models.ForeignKey(Comment)
+    root = models.ForeignKey(PostComment)
+    target = models.ForeignKey("self", blank=True, null=True)
 
 
 class Vote(models.Model):
@@ -63,6 +79,19 @@ class Vote(models.Model):
 
     """
     voter = models.ForeignKey(User)
+
+    def save(self, *args, **kwargs):
+        """The save function for Vote objects increases the karma counters.
+
+        """
+        # Record the upvote.
+        self.target.karma += 1
+        self.target.owner.karma += 1
+
+        self.target.save()
+        self.target.owner.save()
+
+        super(Vote, self).save(*args, **kwargs)
 
     class Meta:
         abstract = True
@@ -79,25 +108,16 @@ class PostVote(Vote):
     target = models.ForeignKey(Post)
 
 
-class CommentVote(Vote):
-    """A comment vote unit.
+class PostCommentVote(Vote):
+    """An upvote for the comment of a post.
 
     """
-    target = models.ForeignKey(Comment)
+    target = models.ForeignKey(PostComment)
 
 
-# Utility functions
-def karma_inc(o):
-    """Increments the karma count for an object.
-
-    This function returns False if the object does not have a karma attribute.
+class CommentReplyVote(Vote):
+    """An upvote for the comment of a comment (reply).
 
     """
-    if hasattr(o, "karma"):
-        o.karma += 1
-        o.save()
-        return True
-
-    else:
-        return False
+    target = models.ForeignKey(CommentReply)
 
