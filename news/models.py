@@ -34,10 +34,26 @@ class Post(models.Model):
     karma = models.IntegerField(default=0)
 
     def upvote(self, user):
-
         # Add the PostVote to the database.
         pv = PostVote(voter=user, target=self)
         pv.save()
+
+    def domain(self):
+        """Returns the domain of the url.
+
+        """
+        url = self.url.lstrip("http://")
+        url = url.lstrip("https://")
+        url = url.lstrip("www.")
+        domain = url.split("/")[0]
+
+        return domain
+
+    def comment_count(self):
+        """Returns the number of PostComment instances that have this post as their target.
+
+        """
+        return len(PostComment.objects.filter(target=self))
 
 
 class Comment(models.Model):
