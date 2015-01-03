@@ -1,6 +1,11 @@
 
 from django.db import models
+from urlparse import urlparse
 from django.contrib.auth.models import User as DjangoUser
+from django.utils.timezone import now
+from django.core.urlresolvers import reverse
+from math import log10
+
 
 
 class User(models.Model):
@@ -12,25 +17,36 @@ class User(models.Model):
 
     """
     user = models.OneToOneField(DjangoUser)
-    karma = models.IntegerField(default=0)
+    karma = models.IntegerField(default=1)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    #Extra attribute (bio)
+    biography = models.TextField(null=True)
+
 
     def __repr__(self):
-        return u"#{} {} ({})".format(self.pk, self.user.username, self.karma)
+        return u"#{} {} ({})\nAbout:\n{}".format(self.pk, self.user.username,
+                                                 self.karma, self.biography)
+
+
+    def __unicode__(self):
+        return "%s's profile" % self.user
 
 
 class Post(models.Model):
     """A Post to the news website.
 
     This is the atom of the website: it represents either a "self" post where
-    users can write questions for the community, or a more standard "link" 
+    users can write questions for the community, or a more standard "link"
     post where users share web content. Votes and comments will be anchored
     to the posts.
 
     """
     owner = models.ForeignKey(User)
     title = models.CharField(max_length=200)
-    url = models.CharField(max_length=200)
+    url = models.URLField(max_length=200)
     submitted_date = models.DateTimeField(auto_now_add=True)
+    rank = models.FloatField(default=0.0)
     karma = models.IntegerField(default=0)
 
     def upvote(self, user):
@@ -42,11 +58,11 @@ class Post(models.Model):
         """Returns the domain of the url.
 
         """
-        url = self.url.lstrip("http://")
-        url = url.lstrip("https://")
-        url = url.lstrip("www.")
-        domain = url.split("/")[0]
-
+        parsed_url = urlparse(self.url)
+        # get the domain name. This will keep the top level domain name
+        domain='{uri.netloc}'.format(uri=parsed_url)
+        # This  will get rid of the top-level domain name
+        #domain = url.split(".")[0]
         return domain
 
     def comment_count(self):
@@ -55,9 +71,22 @@ class Post(models.Model):
         """
         return len(PostComment.objects.filter(target=self))
 
+    def set_rank(self):
+        SECS_IN_HOUR=float(3600)
+        GRAVITY=1.5
+        delta= now() - self.submitted_date
+        post_age = delta.total_seconds() // SECS_IN_HOUR
+        self.rank = ((self.karma-1) / pow(post_age+2, GRAVITY))
+        self.save()
+
+    def get_absolute_url(self):
+        return reverse("link_detail", kwargs={"pk": str(self.id)})
+
+    def __unicode__(self):
+        return self.title
 
 class Comment(models.Model):
-    """Abstract class for comments. 
+    """Abstract class for comments.
 
     """
     owner = models.ForeignKey(User)
@@ -91,10 +120,11 @@ class CommentReply(Comment):
 class Vote(models.Model):
     """Abstract class for Votes.
 
-    this is subclassed to allow voting ont Posts and on Comments.
+    this is subclassed to allow voting on Posts and on Comments.
 
     """
     voter = models.ForeignKey(User)
+
 
     def save(self, *args, **kwargs):
         """The save function for Vote objects increases the karma counters.
@@ -119,7 +149,7 @@ class PostVote(Vote):
     We need to record who voted for what article. Hence, a database entry
     will be added for every vote. This is to avoid re-votes as the score
     will be recorder in the Post to avoid recomputing it at every page load.
-    
+
     """
     target = models.ForeignKey(Post)
 
@@ -137,3 +167,11 @@ class CommentReplyVote(Vote):
     """
     target = models.ForeignKey(CommentReply)
 
+
+
+def create_profile(sender, instance, created, **kwargs):
+    if created:
+        profile, created = User.objects.get_or_create(user=instance)
+
+from django.db.models.signals import post_save
+post_save.connect(create_profile, sender=User)

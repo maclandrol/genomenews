@@ -24,16 +24,22 @@
           {% endblock %}
         </div>
         <div id="user">
-          <span id="username"><a href="">admin</a></span>
-          <span id="karma">(31415)</span> |
-          <span id="logout"><a href="">logout</a></span>
-        </div>
-      </div> <!-- /#header //-->
+            {% if user.is_authenticated %}
+                <span id="username"><a href="{% url 'profile' slug=user.username %}">{{ user.username }}</a></span>
+                <span id="karma">({{ user.karma }})</span> | 
+                <span id="logout"><a href="{% url 'logout' %}">logout</a> </span>
+            {% else %}
+                <span id="logout"> <a href="{% url 'login' %}">login</a> </span> |
+                <span id="logout"><a href="{% url 'registration_register' %}">register</a></span>
+            {% endif %}
 
-      <div id="content">
-      {% block content %}{% endblock %}
-      </div><!-- /#content //-->
+        </div> <!-- /#user //-->
+     </div> <!-- /#header //-->
+
+     <div id="content">
+      {% block content %}
+      {% endblock %}
+     </div><!-- /#content //-->
     </div><!-- /#page //-->
   </body>
 </html>
-
