@@ -1,14 +1,14 @@
-
 from django.db import models
 from urlparse import urlparse
-from django.contrib.auth.models import User as DjangoUser
+from django.contrib.auth.models import User
 from django.utils.timezone import now
 from django.core.urlresolvers import reverse
+from django.db.models import F
 from math import log10
 
 
 
-class User(models.Model):
+class UserProfile(models.Model):
     """A user for the website.
 
     We mostly use Django's default behavior for authentication, but we might
@@ -16,11 +16,10 @@ class User(models.Model):
     in the future).
 
     """
-    user = models.OneToOneField(DjangoUser)
+    user = models.OneToOneField(User, unique=True)
     karma = models.IntegerField(default=1)
     created_at = models.DateTimeField(auto_now_add=True)
-
-    #Extra attribute (bio)
+    # Add extra attribute : user bio
     biography = models.TextField(null=True)
 
 
@@ -30,7 +29,11 @@ class User(models.Model):
 
 
     def __unicode__(self):
-        return "%s's profile" % self.user
+        """UserProfile representation
+
+        """
+
+        return "%s" % self.user
 
 
 class Post(models.Model):
@@ -61,9 +64,8 @@ class Post(models.Model):
         parsed_url = urlparse(self.url)
         # get the domain name. This will keep the top level domain name
         domain='{uri.netloc}'.format(uri=parsed_url)
-        # This  will get rid of the top-level domain name
-        #domain = url.split(".")[0]
-        return domain
+        # remove subdomain www if it persists and convert to lowercase
+        return domain.lower().strip("www.")
 
     def comment_count(self):
         """Returns the number of PostComment instances that have this post as their target.
@@ -72,6 +74,10 @@ class Post(models.Model):
         return len(PostComment.objects.filter(target=self))
 
     def set_rank(self):
+        """Hacker news ranking algorithm
+        see http://amix.dk/blog/post/19574
+
+        """
         SECS_IN_HOUR=float(3600)
         GRAVITY=1.5
         delta= now() - self.submitted_date
@@ -131,11 +137,13 @@ class Vote(models.Model):
 
         """
         # Record the upvote.
-        self.target.karma += 1
-        self.target.owner.karma += 1
+        # self.target.update(karma=F('karma') + 1)
+        # self.target.owner.userprofile.update(karma=F('karma') + 1)
 
+        self.target.karma += 1
+        self.target.owner.userprofile.karma += 1
         self.target.save()
-        self.target.owner.save()
+        self.target.owner.userprofile.save()
 
         super(Vote, self).save(*args, **kwargs)
 
@@ -168,10 +176,17 @@ class CommentReplyVote(Vote):
     target = models.ForeignKey(CommentReply)
 
 
+# This is a signal to connect user to userprofile.
+# Because I'm already using a registration system,
+# this is useless and generate errors
+'''
+def create_profile_callback(sender, instance, created, **kwargs):
+    """Callback to save userprofile
 
-def create_profile(sender, instance, created, **kwargs):
+    """
     if created:
-        profile, created = User.objects.get_or_create(user=instance)
+        profile, created = UserProfile.objects.get_or_create(user=instance)
 
 from django.db.models.signals import post_save
-post_save.connect(create_profile, sender=User)
+post_save.connect(create_profile_callback, sender=User)
+'''

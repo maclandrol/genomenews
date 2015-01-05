@@ -65,6 +65,8 @@ body {
 #header #user {
     float: right;
     margin: 2px 5px 0 0;
+    display: inline;
+
 }
 
 /* Content format */
@@ -135,4 +137,3 @@ hr {
     font-size: 9pt;
     text-decoration: none;
 }
-

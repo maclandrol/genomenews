@@ -27,7 +27,17 @@ TEMPLATE_DIRS = (
     os.path.join(BASE_DIR, 'templates'),
 )
 
+TEMPLATE_CONTEXT_PROCESSORS = (
+    "django.contrib.auth.context_processors.auth",
+    "django.core.context_processors.debug",
+    "django.core.context_processors.media",
+    "django.core.context_processors.static",
+    "django.contrib.messages.context_processors.messages"
+)
+
 ALLOWED_HOSTS = []
+
+# Database parameters
 
 # Application definition
 
@@ -39,8 +49,8 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.humanize',
+
     'news',
-    'registration',
     'genomenews',
 )
 
@@ -104,7 +114,6 @@ from django.core.urlresolvers import reverse_lazy
 LOGIN_URL=reverse_lazy('login')
 LOGIN_REDIRECT_URL = reverse_lazy('home')
 LOGOUT_URL=reverse_lazy('logout')
-REGISTRATION_AUTO_LOGIN = True # Automatically log the user in.
 
 # A sample logging configuration. The only tangible logging
 # performed by this configuration is to send an email to
@@ -133,3 +142,10 @@ LOGGING = {
         },
     }
 }
+
+# Setting mail for password recovery
+# Important : needa mail service provider (install postfix or use gmail)
+# Also see https://docs.djangoproject.com/en/1.3/topics/email/#testing-e-mail-sending
+EMAIL_HOST = 'localhost'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True

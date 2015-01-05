@@ -26,11 +26,11 @@
         <div id="user">
             {% if user.is_authenticated %}
                 <span id="username"><a href="{% url 'profile' slug=user.username %}">{{ user.username }}</a></span>
-                <span id="karma">({{ user.karma }})</span> | 
+                <span id="karma">({{ user.userprofile.karma }})</span> |
                 <span id="logout"><a href="{% url 'logout' %}">logout</a> </span>
             {% else %}
-                <span id="logout"> <a href="{% url 'login' %}">login</a> </span> |
-                <span id="logout"><a href="{% url 'registration_register' %}">register</a></span>
+                <span id="login"> <a href="{% url 'login' %}">login</a> </span> |
+                <span id="register"><a href="{% url 'registration' %}">register</a></span>
             {% endif %}
 
         </div> <!-- /#user //-->

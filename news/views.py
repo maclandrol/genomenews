@@ -1,12 +1,23 @@
 from django.shortcuts import render_to_response
-from django.http import HttpResponse
-from django.views.generic import DetailView, UpdateView
-from django.contrib.auth import get_user_model
-from .models import User
-from .forms import UserProfileForm
 from django.core.urlresolvers import reverse
+from django.contrib import messages
+from django.contrib.auth.models import User
+from django.contrib.auth import authenticate, login, get_user_model
+from django.http import HttpResponse, HttpResponseRedirect
+from django.template import RequestContext
+from django.views.generic import DetailView, UpdateView
+from django.db import connection, transaction
 
+from news.models import UserProfile
+from news.forms import UserProfileForm, RegistrationForm
 import news.models
+
+def reset(request):
+    cursor = connection.cursor()
+    cursor.execute("SELECT setval('news_userprofile_id_seq', (SELECT MAX(id) FROM news_userprofile)+1)")
+    success = simplejson.dumps({'success':'success',})
+    return HttpResponse(success, mimetype='application/json')
+
 
 def home(request):
     """Website homepage displaying the top posts.
@@ -15,30 +26,61 @@ def home(request):
     ctx = {}
 
     posts = news.models.Post.objects.all().order_by("-submitted_date")
-    posts = posts.order_by('-rank')[:25]
+    posts = posts.order_by('-karma')[:25]
     ctx["posts"] = posts
+    ctx["user"] = request.user
 
     return render_to_response("home.html", ctx)
 
 
-class UserDetail(DetailView):
+def registration(request):
+    """Website registration page
+
+    """
+    if request.user.is_authenticated():
+        return HttpResponseRedirect(reverse("profile", kwargs={"slug": request.user}))
+    if request.method == 'POST':
+        form= RegistrationForm(request.POST)
+        if form.is_valid():
+            user = User.objects.create_user(
+                    username=form.cleaned_data["username"],
+                    email=form.cleaned_data["email"],
+                    password=form.cleaned_data["password"])
+            user.save()
+            userprofile=UserProfile(user=user)
+            userprofile.save()
+            #messages.info(request, "Thanks for registering. You are now logged in.")
+            user =  authenticate(username=form.cleaned_data["username"],
+                                 password=form.cleaned_data["password"])
+            login(request, user)
+            return HttpResponseRedirect(reverse("home"))
+        else:
+            return render_to_response("registration.html", {"form": form}, context_instance=RequestContext(request))
+    else :
+        #Show a new registration form here
+        form = RegistrationForm()
+        ctx={"form": form}
+        return render_to_response("registration.html", ctx, context_instance=RequestContext(request))
+
+
+class UserDetailView(DetailView):
     model = get_user_model()
     slug_field = "username"
     template_name = "profile.html"
 
     def get_object(self, queryset=None):
-        user = super(UserDetail, self).get_object(queryset)
-        User.objects.get_or_create(user=user)
+        user = super(UserDetailView, self).get_object(queryset)
+        UserProfile.objects.get_or_create(user=user)
         return user
 
 
-class UserEdit(UpdateView):
-    model = User
+class UserEditView(UpdateView):
+    model = UserProfile
     form_class = UserProfileForm
     template_name = "edit_profile.html"
 
     def get_object(self, queryset=None):
-        return User.objects.get_or_create(user=self.request.user)[0]
+        return UserProfile.objects.get_or_create(user=self.request.user)[0]
 
     def get_success_url(self):
         return reverse("profile", kwargs={"slug": self.request.user})
