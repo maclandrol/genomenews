@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% load humanize %}
+{% block title %}Genome News{% endblock %}
+
+{% block content %}
+<div>
+<table border="0"><tr>
+  <td valign="top">Username:</td><td>{{ object.userprofile }}</td></tr>
+  <tr><td valign="top">Created:</td><td>{{ object.userprofile.created_at}}</td></tr>
+  <tr><td valign="top">Karma:</td><td>{{ object.userprofile.karma }}</td></tr>
+  <tr><td valign="top">About:</td><td>
+        {% if object.userprofile.biography %}
+            {{ object.userprofile.biography }}
+        {% endif %}
+    </td></tr>
+
+    <tr><td valign="top">Email:</td><td>{{ object.email }}</td></tr>
+
+    <!-- only an authenticated user can edit his own profile-->
+    <tr><td></td><td>
+        {% if object.username == user.username %}
+        <a href='{% url "edit_profile" %}'>Edit my profile</a>
+        {% endif %}
+    </td></tr>
+
+</table>
+</div>
+
+<p><a href="#"><u>Posts</u></a></p>
+<p><a href="#"><u>Comment</u></a></p>
+
+
+
+
+<hr />
+{% endblock %}
