@@ -1,3 +1,4 @@
+
 """
 Django settings for genomenews project.
 
@@ -8,9 +9,19 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/1.7/ref/settings/
 """
 
-# Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 import os
+
+from django.core.urlresolvers import reverse_lazy
+
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
+
+try:
+    from credentials import *
+except ImportError:
+    # Use default (development) credentials.
+    DB_NAME = "genomenews"
+    DB_USER = "genomenews"
+    DB_PASSWORD = "genomenews"
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.7/howto/deployment/checklist/
@@ -37,10 +48,7 @@ TEMPLATE_CONTEXT_PROCESSORS = (
 
 ALLOWED_HOSTS = []
 
-# Database parameters
-
 # Application definition
-
 INSTALLED_APPS = (
     'django.contrib.admin',
     'django.contrib.auth',
@@ -67,7 +75,6 @@ MIDDLEWARE_CLASSES = (
 ROOT_URLCONF = 'genomenews.urls'
 
 WSGI_APPLICATION = 'genomenews.wsgi.application'
-
 
 # Database
 # https://docs.djangoproject.com/en/1.7/ref/settings/#databases
@@ -105,15 +112,12 @@ if not os.path.isdir(STATIC_ROOT):
     os.makedirs(STATIC_ROOT)
 
 STATICFILES_DIRS = (
-    os.path.join(BASE_DIR, "static"), # This should be first in list.
+    os.path.join(BASE_DIR, "static"),  # This should be first in list.
 )
 
-
-from django.core.urlresolvers import reverse_lazy
-
-LOGIN_URL=reverse_lazy('login')
+LOGIN_URL = reverse_lazy('login')
 LOGIN_REDIRECT_URL = reverse_lazy('home')
-LOGOUT_URL=reverse_lazy('logout')
+LOGOUT_URL = reverse_lazy('logout')
 
 # A sample logging configuration. The only tangible logging
 # performed by this configuration is to send an email to
@@ -144,7 +148,8 @@ LOGGING = {
 }
 
 # Setting mail for password recovery
-# Important : needa mail service provider (install postfix or use gmail)
+
+# TODO: need a mail service provider (install postfix or use gmail)
 # Also see https://docs.djangoproject.com/en/1.3/topics/email/#testing-e-mail-sending
 EMAIL_HOST = 'localhost'
 EMAIL_PORT = 587
