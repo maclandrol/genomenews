@@ -13,22 +13,6 @@ from news.forms import UserProfileForm, RegistrationForm
 import news.models as models
 
 
-def reset(request):
-    """Reset.
-
-    TODO: Add documentation.
-
-    There is probably a better way of doing this. It seems like it increments
-    the internal sequence for the automatic primary keys. Why would the reset
-    function do this?
-
-    """
-    cursor = connection.cursor()
-    cursor.execute("SELECT setval('news_userprofile_id_seq', (SELECT MAX(id) FROM news_userprofile)+1)")
-    success = simplejson.dumps({'success':'success',})
-    return HttpResponse(success, mimetype='application/json')
-
-
 def home(request):
     """Website homepage displaying the top posts.
 
@@ -58,9 +42,10 @@ def registration(request):
         form = RegistrationForm(request.POST)
         if form.is_valid():
             user = User.objects.create_user(
-                    username=form.cleaned_data["username"],
-                    email=form.cleaned_data["email"],
-                    password=form.cleaned_data["password"])
+                username=form.cleaned_data["username"],
+                email=form.cleaned_data["email"],
+                password=form.cleaned_data["password"]
+            )
             user.save()
             userprofile = UserProfile(user=user)
             userprofile.save()
@@ -70,7 +55,6 @@ def registration(request):
             login(request, user)
             return HttpResponseRedirect(reverse("home"))
         else:
-            # TODO: Add information on why the form didn't validate.
             return render_to_response(
                 "registration.html",
                 {"form": form},
