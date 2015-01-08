@@ -17,7 +17,7 @@ class UserProfile(models.Model):
 
     """
 
-    user = models.OneToOneField(User, unique=True, related_name="userprofile"))
+    user = models.OneToOneField(User, unique=True, related_name="userprofile")
     karma = models.IntegerField(default=1)
     created_at = models.DateTimeField(auto_now_add=True)
     # Add extra attribute: user bio
