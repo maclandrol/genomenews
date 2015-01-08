@@ -22,7 +22,7 @@
     <div class="bot">
       <span class="points">{{ post.karma }}</span> points
       by <span class="user">
-            <a href="{% url 'profile' slug=post.owner.username %}">{{ post.owner.username }}</a>
+            <a href="{% url 'profile' slug=post.owner.user.username %}">{{ post.owner.user.username }}</a>
         </span> <!-- change css code-->
       <span class="time">{{ post.submitted_date|naturaltime }}</span> |
       <a class="discuss">{{ post.comment_count }} comments</a>

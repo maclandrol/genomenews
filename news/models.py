@@ -17,7 +17,7 @@ class UserProfile(models.Model):
 
     """
 
-    user = models.OneToOneField(User, unique=True)
+    user = models.OneToOneField(User, unique=True, related_name="userprofile"))
     karma = models.IntegerField(default=1)
     created_at = models.DateTimeField(auto_now_add=True)
     # Add extra attribute: user bio
@@ -115,7 +115,7 @@ class Comment(models.Model):
     """Abstract class for comments.
 
     """
-    owner = models.ForeignKey(User)
+    owner = models.ForeignKey(UserProfile)
     comment = models.CharField(max_length=10000)
     karma = models.IntegerField(default=0)
 
@@ -150,7 +150,7 @@ class Vote(models.Model):
     this is subclassed to allow voting on Posts and on Comments.
 
     """
-    voter = models.ForeignKey(User)
+    voter = models.ForeignKey(UserProfile)
 
     def save(self, *args, **kwargs):
         """The save function for Vote objects increases the karma counters.
@@ -161,9 +161,9 @@ class Vote(models.Model):
         # self.target.owner.userprofile.update(karma=F('karma') + 1)
 
         self.target.karma += 1
-        self.target.owner.userprofile.karma += 1
+        self.target.owner.karma += 1
         self.target.save()
-        self.target.owner.userprofile.save()
+        self.target.owner.save()
 
         super(Vote, self).save(*args, **kwargs)
 

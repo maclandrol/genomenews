@@ -47,7 +47,7 @@ def registration(request):
     """Website registration page
 
     """
-    # If used is already logged in, no need to register just redirect to
+    # If user is already logged in, no need to register just redirect to
     # the user's profile page.
     if request.user.is_authenticated():
         return HttpResponseRedirect(

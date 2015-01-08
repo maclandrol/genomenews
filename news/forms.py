@@ -39,11 +39,19 @@ class RegistrationForm(ModelForm):
         """Clean form data.
 
         """
+        email = self.cleaned_data["email"]
         password = self.cleaned_data["password"]
         password1 = self.cleaned_data["password1"]
-        # Here we verify the chosen password
+        # Here we verify the chosen password.
         if(password != password1):
             raise forms.ValidationError("Password does not match !")
+        # Here we verify if the email is already taken.
+        if email and len(User.objects.filter(email=email)) > 0:
+            raise forms.ValidationError(
+                'This email address is already taken.'
+                ' Please supply a different email'
+                ' address.'
+            )
         return self.cleaned_data
 
 
