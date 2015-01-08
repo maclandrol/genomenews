@@ -10,11 +10,13 @@ admin.site.register(Post)
 admin.site.register(PostComment)
 admin.site.register(PostVote)
 
+
 # See Customizing authentication in django
 # https://docs.djangoproject.com/en/1.7/topics/auth/customizing/
 class UserProfileInline(admin.StackedInline):
     model = UserProfile
     can_delete = False
+
 
 class UserProfileAdmin(UserAdmin):
     inlines = (UserProfileInline, )

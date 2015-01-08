@@ -1,11 +1,11 @@
-from django.db import models
+from math import log10
 from urlparse import urlparse
+
+from django.db import models
 from django.contrib.auth.models import User
 from django.utils.timezone import now
 from django.core.urlresolvers import reverse
 from django.db.models import F
-from math import log10
-
 
 
 class UserProfile(models.Model):
@@ -16,24 +16,33 @@ class UserProfile(models.Model):
     in the future).
 
     """
+
     user = models.OneToOneField(User, unique=True)
     karma = models.IntegerField(default=1)
     created_at = models.DateTimeField(auto_now_add=True)
-    # Add extra attribute : user bio
+    # Add extra attribute: user bio
     biography = models.TextField(null=True)
-
 
     def __repr__(self):
         return u"#{} {} ({})\nAbout:\n{}".format(self.pk, self.user.username,
                                                  self.karma, self.biography)
 
-
     def __unicode__(self):
         """UserProfile representation
 
+        TODO: It might become confusing to have __repr__ and __unicode__ doing
+        different things. It sould be best to refactor to something like:
+
+            __repr__: Minimal object representation for logging and console
+                      display.
+            __unicode__: User-friendly reprsentation for default use in
+                         templates.
+            Specific methods for other representations.
+
+
         """
 
-        return "%s" % self.user
+        return self.user.__unicode__()
 
 
 class Post(models.Model):
@@ -45,7 +54,7 @@ class Post(models.Model):
     to the posts.
 
     """
-    owner = models.ForeignKey(User)
+    owner = models.ForeignKey(UserProfile)
     title = models.CharField(max_length=200)
     url = models.URLField(max_length=200)
     submitted_date = models.DateTimeField(auto_now_add=True)
@@ -63,12 +72,13 @@ class Post(models.Model):
         """
         parsed_url = urlparse(self.url)
         # get the domain name. This will keep the top level domain name
-        domain='{uri.netloc}'.format(uri=parsed_url)
+        domain = '{uri.netloc}'.format(uri=parsed_url)
         # remove subdomain www if it persists and convert to lowercase
         return domain.lower().strip("www.")
 
     def comment_count(self):
-        """Returns the number of PostComment instances that have this post as their target.
+        """Returns the number of PostComment instances that have this post as
+           their target.
 
         """
         return len(PostComment.objects.filter(target=self))
@@ -77,19 +87,29 @@ class Post(models.Model):
         """Hacker news ranking algorithm
         see http://amix.dk/blog/post/19574
 
+        TODO: I am not sure this should be in the database. I think it should
+        just be a method.
+
+        The advantage would be to avoid "forgetting" to update this field
+        and it would reduce redundancy in the DB as it is a deterministic
+        function of other DB fields.
+
         """
-        SECS_IN_HOUR=float(3600)
-        GRAVITY=1.5
-        delta= now() - self.submitted_date
+        SECS_IN_HOUR = 3600.0
+        GRAVITY = 1.5
+
+        delta = now() - self.submitted_date
         post_age = delta.total_seconds() // SECS_IN_HOUR
-        self.rank = ((self.karma-1) / pow(post_age+2, GRAVITY))
+        self.rank = ((self.karma - 1) / (post_age + 2) ** GRAVITY)
         self.save()
 
     def get_absolute_url(self):
+        # FIXME I am pretty sure this reverse doesn't work.
         return reverse("link_detail", kwargs={"pk": str(self.id)})
 
     def __unicode__(self):
         return self.title
+
 
 class Comment(models.Model):
     """Abstract class for comments.
@@ -98,6 +118,7 @@ class Comment(models.Model):
     owner = models.ForeignKey(User)
     comment = models.CharField(max_length=10000)
     karma = models.IntegerField(default=0)
+
     class Meta:
         abstract = True
 
@@ -130,7 +151,6 @@ class Vote(models.Model):
 
     """
     voter = models.ForeignKey(User)
-
 
     def save(self, *args, **kwargs):
         """The save function for Vote objects increases the karma counters.
@@ -174,19 +194,3 @@ class CommentReplyVote(Vote):
 
     """
     target = models.ForeignKey(CommentReply)
-
-
-# This is a signal to connect user to userprofile.
-# Because I'm already using a registration system,
-# this is useless and generate errors
-'''
-def create_profile_callback(sender, instance, created, **kwargs):
-    """Callback to save userprofile
-
-    """
-    if created:
-        profile, created = UserProfile.objects.get_or_create(user=instance)
-
-from django.db.models.signals import post_save
-post_save.connect(create_profile_callback, sender=User)
-'''
