@@ -6,7 +6,7 @@
 {% for post in posts %}
 <div class="entry">
   <div class="left">
-    <span class="rank">{{ forloop.counter }}.</span>
+    <span class="rank">{{ forloop.counter|add:posts.start_index|add:"-1" }}.</span>
     <a href="" class="up">^</a>
   </div> <!-- /#left //-->
 
@@ -31,7 +31,9 @@
 </div>
 {% endfor %}
 
-<p><a href="" id="more">More</a></p>
+{% if posts.has_next %}
+    <p><a href="?page={{ posts.next_page_number }}" id="more">More</a></p>
+{% endif %}
 <hr />
 <div id="footer">
     <a href="RSS">RSS</a> |

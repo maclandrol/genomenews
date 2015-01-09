@@ -1,4 +1,3 @@
-
 from django.conf.urls import patterns, include, url
 from django.contrib import admin
 from django.conf import settings
@@ -16,6 +15,7 @@ urlpatterns = patterns('',
 
     url(r'^admin/', include(admin.site.urls)),
     url(r'^$', 'news.views.home', name='home'),
+    url(r'^news$', 'news.views.home', name='news'),
     url(r'^users/(?P<slug>\w+)/$', UserDetailView.as_view(), name='profile'),
     url(r'^login/$', 'django.contrib.auth.views.login',
         {'template_name': 'login.html'},

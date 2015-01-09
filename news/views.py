@@ -1,5 +1,6 @@
 from django.shortcuts import render_to_response
 from django.core.urlresolvers import reverse
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.contrib import messages
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login, get_user_model
@@ -17,12 +18,33 @@ def home(request):
     """Website homepage displaying the top posts.
 
     """
+    POSTS_PER_PAGE = 25
     ctx = {}
 
+    # TODO: order by rank
     posts = models.Post.objects.all().order_by("-submitted_date")
-    posts = posts.order_by('-karma')[:25]
-    ctx["posts"] = posts
+    posts = posts.order_by('-karma')
+    post_in_page = posts[:POSTS_PER_PAGE]
+
+    paginator = Paginator(posts, POSTS_PER_PAGE)
+    page = request.GET.get('page')
+
+    try:
+        post_in_page = paginator.page(page)
+    except PageNotAnInteger:
+        # Display first page then
+        post_in_page = paginator.page(1)
+    except EmptyPage:
+        # Page number is an integer but out of bounds
+        # Display first page if user request page 0
+        # Otherwise display an empty page
+        if(int(page)==0):
+            post_in_page = paginator.page(1)
+        else:
+            post_in_page=[]
+
     ctx["user"] = request.user
+    ctx["posts"] = post_in_page
 
     return render_to_response("home.html", ctx)
 
