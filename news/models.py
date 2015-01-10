@@ -61,6 +61,7 @@ class Post(models.Model):
     description = models.TextField(null=True)
     rank = models.FloatField(default=0.0)
     karma = models.IntegerField(default=0)
+    is_self_post = models.BooleanField(default=False)
 
     def upvote(self, user):
         # Add the PostVote to the database.
@@ -75,7 +76,7 @@ class Post(models.Model):
         # get the domain name. This will keep the top level domain name
         domain = '{uri.netloc}'.format(uri=parsed_url)
         # remove subdomain www if it persists and convert to lowercase
-        return domain.lower().strip("www.")
+        return domain.lower().strip("www.") if not self.is_self_post else ""
 
     def comment_count(self):
         """Returns the number of PostComment instances that have this post as
@@ -105,14 +106,7 @@ class Post(models.Model):
         self.save()
 
     def get_absolute_url(self):
-        # FIXME There should be a better way to do this
-        # If url is not set, this is a self post. url should then
-        # link to absolute_url
-        absolute_url = reverse("link_detail", kwargs={"pk": str(self.id)})
-        if not (self.url):
-            print "Got you!"
-            self.url = absolute_url
-        return absolute_url
+            return reverse("link_detail", kwargs={"pk": str(self.id)})
 
     def __unicode__(self):
         return self.title

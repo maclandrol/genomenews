@@ -160,7 +160,24 @@ class PostSubmitView(CreateView):
         f.owner = self.request.user.userprofile
         f.save()
         return super(CreateView, self).form_valid(form)
-        
+
+    def get_success_url(self):
+        """Success url for the post submission
+
+        The get_absolute_url method of the model should provide
+        the success_url. Here we are using a trick to distinct
+        self post from link post. We set the url to the full url
+        from the get_absolute_url if it's a self post
+
+        """
+        success_url = super(PostSubmitView, self).get_success_url()
+        post = self.object
+        if not post.url:
+            post.url = self.request.build_absolute_uri(success_url)
+            post.is_self_post = True
+            post.save()
+        return success_url
+
 
 class PostDetailView(DetailView):
     """Detail view for a Post
