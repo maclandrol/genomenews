@@ -202,4 +202,6 @@ class PostDeleteView(DeleteView):
     """
     model = Post
     template_name = "post/post_delete.html"
+    # FIXME: Don't know if redirecting to home after deleting a post
+    # is the best way...
     success_url = reverse_lazy("home")
