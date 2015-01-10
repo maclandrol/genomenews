@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% load humanize %}
-{% block title %}Genome News{% endblock %}
+{% block title %}{{title}} Genome News{% endblock %}
 
 {% block content %}
 {% for post in posts %}
@@ -25,7 +25,11 @@
             <a href="{% url 'profile' slug=post.owner.user.username %}">{{ post.owner.user.username }}</a>
         </span> <!-- change css code-->
       <span class="time">{{ post.submitted_date|naturaltime }}</span> |
-      <a class="discuss">{{ post.comment_count }} comments</a>
+      <a class="discuss" href="{% url 'link_detail' pk=post.pk %}">{{ post.comment_count }} comments</a>
+      {% if post.owner.user == user %}
+     | <a class="update" href="{% url 'link_update' pk=post.pk %}">update</a> |
+      <a class="delete" href="{% url 'link_delete' pk=post.pk %}" >delete</a>
+      {% endif %}
     </div> <!-- /#bot //-->
   </div> <!-- /#right //-->
 </div>

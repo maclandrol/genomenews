@@ -58,6 +58,7 @@ class Post(models.Model):
     title = models.CharField(max_length=200)
     url = models.URLField(max_length=200)
     submitted_date = models.DateTimeField(auto_now_add=True)
+    description = models.TextField(null=True)
     rank = models.FloatField(default=0.0)
     karma = models.IntegerField(default=0)
 
@@ -104,8 +105,14 @@ class Post(models.Model):
         self.save()
 
     def get_absolute_url(self):
-        # FIXME I am pretty sure this reverse doesn't work.
-        return reverse("link_detail", kwargs={"pk": str(self.id)})
+        # FIXME There should be a better way to do this
+        # If url is not set, this is a self post. url should then
+        # link to absolute_url
+        absolute_url = reverse("link_detail", kwargs={"pk": str(self.id)})
+        if not (self.url):
+            print "Got you!"
+            self.url = absolute_url
+        return absolute_url
 
     def __unicode__(self):
         return self.title

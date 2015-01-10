@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}Post Submission | Genome News{% endblock %}
+
+{% block content %}
+{% csrf_token %}
+{% if form.errors %}
+    <ol>{{ form.non_field_errors }}</ol>
+{% endif %}
+
+<form method="post" action="">
+  {% csrf_token %}
+
+ <div>
+ <table border="0"><tr>
+   <td valign="top"><label for="title"> Title:</label> </td><td>{{ form.title }}</td></tr>
+   <td valign="top"><label for="url"> URL:</label> </td><td>{{ form.url }}</td></tr>
+   <td valign="top"><label for="description"> Description:</label> </td><td>{{ form.description }}</td></tr>
+ </table>
+</div>
+
+<input type="submit" value="Submit">
+</form>
+
+<p class="info">Leave url blank to submit a question for discussion. If there is no url, the description (if any) will appear at the top of the thread. (Copy pasta from HN)</p>
+
+{% endblock %}

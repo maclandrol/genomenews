@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block title %}{{object.title}} | Genome News{% endblock %}
+{% load humanize %}
+{% block content %}
+
+<div class="entry">
+  <div class="left">
+    <a href="" class="up">^</a>
+  </div> <!-- /#left //-->
+  <div class="right">
+    <div class="top">
+      <span class="title"><a href="{{ object.url }}">{{ object.title }}</a></span>
+      <span class="domain">
+            {% if object.domain %}
+                ({{ object.domain }})
+            {% endif %}
+    </span>
+    </div> <!-- /#top //-->
+    <div class="bot">
+      <span class="points">{{ object.karma }}</span> points
+      by <span class="user">
+            <a href="{% url 'profile' slug=post.owner.user.username %}">{{ object.owner.user.username }}</a>
+        </span> <!-- change css code-->
+      <span class="time">{{ post.submitted_date|naturaltime }}</span> |
+      <a class="discuss" href="{% url 'link_detail' pk=object.pk %}">{{ object.comment_count }} comments</a>
+      {% if object.owner.user == user %}
+     | <a class="update" href="{% url 'link_update' pk=object.pk %}">update</a> |
+      <a class="delete" href="{% url 'link_delete' pk=object.pk %}" >delete</a>
+      {% endif %}
+    </div> <!-- /#bot //-->
+  </div> <!-- /#right //-->
+
+</div> <!-- /#entry //-->
+
+  {% if object.description %}
+  <br><br>
+  <div class="description">
+      {{ object.description }}
+  </div><!-- /#description //-->
+  {% endif %}
+
+
+<!-- The form to add a comment will be here -->
+
+<div class="comments">
+  <h5>Comments</h5>
+  <!--The list of comment will be rendered here -->
+</div>
+<hr />
+<div id="footer">
+    <a href="RSS">RSS</a> |
+    <a href="">About</a>
+</div>
+
+{% endblock %}

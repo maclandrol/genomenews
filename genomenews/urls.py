@@ -3,6 +3,8 @@ from django.contrib import admin
 from django.conf import settings
 from django.conf.urls.static import static
 from news.views import UserDetailView, UserEditView
+from news.views import PostSubmitView, PostDetailView
+from news.views import PostUpdateView, PostDeleteView
 from django.contrib.auth.decorators import login_required
 
 # Find admin auto
@@ -15,7 +17,8 @@ urlpatterns = patterns('',
 
     url(r'^admin/', include(admin.site.urls)),
     url(r'^$', 'news.views.home', name='home'),
-    url(r'^news$', 'news.views.home', name='news'),
+    url(r'^top$', 'news.views.home', name='top'),
+    url(r'^newest$', 'news.views.newest', name='newest'),
     url(r'^users/(?P<slug>\w+)/$', UserDetailView.as_view(), name='profile'),
     url(r'^login/$', 'django.contrib.auth.views.login',
         {'template_name': 'login.html'},
@@ -38,4 +41,19 @@ urlpatterns = patterns('',
     url(r'edit-profile/$',
         login_required(UserEditView.as_view()),
         name='edit_profile'),
+
+    url(r'^post/(?P<pk>\d+)/$',
+        PostDetailView.as_view(),
+        name='link_detail'),
+    url(r'^post/update/(?P<pk>\d+)/$',
+        login_required(PostUpdateView.as_view()),
+        name='link_update'),
+    url(r'^post/delete/(?P<pk>\d+)/$',
+        login_required(PostDeleteView.as_view()),
+        name='link_delete'),
+
+    # Post submission form
+    url(r'^submit$',
+        login_required(PostSubmitView.as_view()),
+        name='submit'),
 )

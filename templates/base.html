@@ -8,18 +8,18 @@
   <body>
     <div id="page">
       <div id="header">
-        <a href="{% url 'news' %}" class="logo">
+        <a href="{% url 'top' %}" class="logo">
           <img src="{% static 'images/logo.png' %}" alt="Logo" />
         </a>
         <h1>Genome News</h1>
         <div id="nav">
           {% block navlist %}
           <ul>
-            <li><a href="">new</a> | </li>
+            <li><a href="{% url 'newest' %}">new</a> | </li>
             <li><a href="">threads</a> | </li>
             <li><a href="">comments</a> | </li>
             <li><a href="">leaders</a> | </li>
-            <li><a href="">submit</a></li>
+            <li><a href="{% url 'submit' %}">submit</a></li>
           </ul>
           {% endblock %}
         </div>

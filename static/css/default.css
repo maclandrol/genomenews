@@ -127,6 +127,10 @@ p a#more {
     text-decoration: none;
 }
 
+.info  {
+    padding: 20px;
+}
+
 hr {
     border: 1px solid #ADEF61;
 }
