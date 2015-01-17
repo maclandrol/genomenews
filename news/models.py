@@ -24,25 +24,11 @@ class UserProfile(models.Model):
     biography = models.TextField(null=True)
 
     def __repr__(self):
-        return u"#{} {} ({})\nAbout:\n{}".format(self.pk, self.user.username,
-                                                 self.karma, self.biography)
+        return u"#{} {} ({})".format(self.pk, self.user.username, self.karma)
 
     def __unicode__(self):
-        """UserProfile representation
-
-        TODO: It might become confusing to have __repr__ and __unicode__ doing
-        different things. It sould be best to refactor to something like:
-
-            __repr__: Minimal object representation for logging and console
-                      display.
-            __unicode__: User-friendly reprsentation for default use in
-                         templates.
-            Specific methods for other representations.
-
-
-        """
-
-        return self.user.__unicode__()
+        """UserProfile representation. """
+        return self.user.username
 
 
 class Post(models.Model):
@@ -59,7 +45,6 @@ class Post(models.Model):
     url = models.URLField(max_length=200)
     submitted_date = models.DateTimeField(auto_now_add=True)
     description = models.TextField(null=True)
-    rank = models.FloatField(default=0.0)
     karma = models.IntegerField(default=0)
     is_self_post = models.BooleanField(default=False)
 
@@ -85,25 +70,17 @@ class Post(models.Model):
         """
         return len(PostComment.objects.filter(target=self))
 
-    def set_rank(self):
-        """Hacker news ranking algorithm
+    def rank(self):
+        """Hacker news ranking algorithm.
+
         see http://amix.dk/blog/post/19574
-
-        TODO: I am not sure this should be in the database. I think it should
-        just be a method.
-
-        The advantage would be to avoid "forgetting" to update this field
-        and it would reduce redundancy in the DB as it is a deterministic
-        function of other DB fields.
-
         """
         SECS_IN_HOUR = 3600.0
         GRAVITY = 1.5
 
         delta = now() - self.submitted_date
         post_age = delta.total_seconds() // SECS_IN_HOUR
-        self.rank = ((self.karma - 1) / (post_age + 2) ** GRAVITY)
-        self.save()
+        return ((self.karma - 1) / (post_age + 2) ** GRAVITY)
 
     def get_absolute_url(self):
             return reverse("link_detail", kwargs={"pk": str(self.id)})

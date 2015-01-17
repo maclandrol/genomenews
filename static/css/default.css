@@ -65,11 +65,14 @@ body {
 #header #user {
     float: right;
     margin: 2px 5px 0 0;
-    display: inline;
-
+    display: inline-block;
 }
 
 /* Content format */
+#content {
+    clear: both;
+}
+
 .entry {
     height: 32px;
     width: 85%;
@@ -145,3 +148,29 @@ hr {
     font-size: 9pt;
     text-decoration: none;
 }
+
+/* Submit new link format */
+#submit-form {
+    margin-left: 20px;
+}
+
+#submit-form p {
+    width: 300px;
+}
+
+#submit-form p input, #submit-form p textarea {
+    float: right;
+    width: 220px;
+}
+
+#submit-form .submit {
+    clear: both;
+    float: none;
+}
+
+#submit-form .submit input {
+    width: 60px;
+    float: none;
+    margin: 10px 0 0 72px;
+}
+

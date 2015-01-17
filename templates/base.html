@@ -4,7 +4,7 @@
   <head>
     <link rel="stylesheet" type="text/css" href="{% static "css/default.css" %}" />
     <title>{% block title %}{% endblock %}</title>
-  <head>
+  </head>
   <body>
     <div id="page">
       <div id="header">
@@ -23,7 +23,7 @@
           </ul>
           {% endblock %}
         </div>
-        <div id="user">
+        <span id="user">
             {% if user.is_authenticated %}
                 <span id="username"><a href="{% url 'profile' slug=user.username %}">{{ user.username }}</a></span>
                 <span id="karma">({{ user.userprofile.karma }})</span> |
@@ -33,7 +33,7 @@
                 <span id="register"><a href="{% url 'registration' %}">register</a></span>
             {% endif %}
 
-        </div> <!-- /#user //-->
+        </span> <!-- /#user //-->
      </div> <!-- /#header //-->
 
      <div id="content">
