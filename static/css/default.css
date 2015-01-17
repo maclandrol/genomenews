@@ -124,6 +124,11 @@ body {
 }
 
 /* Home format */
+a {
+    color: #828282; /* Gray */
+    text-decoration: none;
+}
+
 p a#more {
     margin-left: 20px;
     color: #828282; /* Gray */
