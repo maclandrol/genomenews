@@ -27,9 +27,9 @@
             {% if user.is_authenticated %}
                 <span id="username"><a href="{% url 'profile' slug=user.username %}">{{ user.username }}</a></span>
                 <span id="karma">({{ user.userprofile.karma }})</span> |
-                <span id="logout"><a href="{% url 'logout' %}">logout</a> </span>
+                <span id="logout"><a href="{% url 'logout' %}?next={{request.path}}">logout</a> </span>
             {% else %}
-                <span id="login"> <a href="{% url 'login' %}">login</a> </span> |
+                <span id="login"> <a href="{% url 'login' %}?next={{request.path}}">login</a> </span> |
                 <span id="register"><a href="{% url 'registration' %}">register</a></span>
             {% endif %}
 

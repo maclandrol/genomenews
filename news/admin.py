@@ -1,5 +1,5 @@
 from django.contrib import admin
-from news.models import Post, PostComment, UserProfile, PostVote
+from news.models import Post, UserProfile, PostVote
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth import get_user_model
@@ -7,7 +7,6 @@ from django.contrib.auth import get_user_model
 
 # Register your models here.
 admin.site.register(Post)
-admin.site.register(PostComment)
 admin.site.register(PostVote)
 
 

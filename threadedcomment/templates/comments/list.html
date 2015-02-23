@@ -1,0 +1,40 @@
+{% comment %}
+  This template replaces the default "comments/list.html" of "django.contrib.comments",
+  to allow rendering the comments as tree.
+{% endcomment %}
+{% load threadedcomments_tags %}
+{% load extrafilter %}
+{% load humanize %}
+
+<div id="comments">
+    {% for comment in comment_list|fill_tree|annotate_tree %}
+        {% if comment.open %}
+            <ul>
+        {% else %}
+            </li>
+        {% endif %}
+        <li id="c{{ comment.id }}">{# c## is used by the absolute URL of the Comment model, so keep that as it is. #}
+            <div class="comment">
+              <div class="left">
+                <a href="" class="up">^</a>
+              </div> <!-- /#left //-->
+              <div class="right">
+                <div class="commentdetails">
+                <span class="user">
+                  <a href="{% url 'profile' slug=comment.user.username %}">{{ comment.user.username }}</a>
+              </span> <!-- user-->
+                  <span class="time">{{ comment.submit_date|naturaltime|upto:","|add:" ago" }}</span>
+                  {% if comment.user == user %}
+                 | <a class="update" href="{% url 'link_update' pk=object.pk %}">edit</a> |
+                  <a class="delete" href="{% url 'link_delete' pk=object.pk %}" >delete</a>
+                  {% endif %}
+                </div> <!-- /#commentdetails //-->
+                <div class="text">
+                    {{ comment.comment|linebreaks }}
+                </div> <!-- /#text //-->
+                <a class="reply" href="{% url 'link_update' pk=object.pk %}">reply</a>
+              </div> <!-- /#right //-->
+          </div> <!-- /#comment //-->
+            {% for close in comment.close %}</li></ul>{% endfor %}
+    {% endfor %}
+</div>

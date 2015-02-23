@@ -6,6 +6,7 @@ from django.contrib.auth.models import User
 from django.utils.timezone import now
 from django.core.urlresolvers import reverse
 from django.db.models import F
+from threadedcomment.models import ThreadedComment
 
 
 class UserProfile(models.Model):
@@ -63,13 +64,6 @@ class Post(models.Model):
         # remove subdomain www if it persists and convert to lowercase
         return domain.lower().strip("www.") if not self.is_self_post else ""
 
-    def comment_count(self):
-        """Returns the number of PostComment instances that have this post as
-           their target.
-
-        """
-        return len(PostComment.objects.filter(target=self))
-
     def rank(self):
         """Hacker news ranking algorithm.
 
@@ -87,40 +81,6 @@ class Post(models.Model):
 
     def __unicode__(self):
         return self.title
-
-
-class Comment(models.Model):
-    """Abstract class for comments.
-
-    """
-    owner = models.ForeignKey(UserProfile)
-    comment = models.CharField(max_length=10000)
-    karma = models.IntegerField(default=0)
-
-    class Meta:
-        abstract = True
-
-
-class PostComment(Comment):
-    """A comment for a given Post.
-
-    """
-    target = models.ForeignKey(Post)
-
-
-class CommentReply(Comment):
-    """A comment for a given comment (reply).
-
-    :param root: Always contains a the PostComment which is the first node
-                 in the discussion tree.
-
-    :param target: The target comment (for replies). If this is NULL, we
-                   assume that this reply is to the root PostComment.
-
-    """
-    root = models.ForeignKey(PostComment)
-    target = models.ForeignKey("self", blank=True, null=True)
-
 
 class Vote(models.Model):
     """Abstract class for Votes.
@@ -160,15 +120,7 @@ class PostVote(Vote):
     target = models.ForeignKey(Post)
 
 
-class PostCommentVote(Vote):
+class CommentVote(Vote):
     """An upvote for the comment of a post.
-
     """
-    target = models.ForeignKey(PostComment)
-
-
-class CommentReplyVote(Vote):
-    """An upvote for the comment of a comment (reply).
-
-    """
-    target = models.ForeignKey(CommentReply)
+    target = models.ForeignKey(ThreadedComment)

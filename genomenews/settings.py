@@ -43,8 +43,11 @@ TEMPLATE_CONTEXT_PROCESSORS = (
     "django.core.context_processors.debug",
     "django.core.context_processors.media",
     "django.core.context_processors.static",
-    "django.contrib.messages.context_processors.messages"
+    "django.contrib.messages.context_processors.messages",
+    "django.core.context_processors.request"
 )
+
+
 
 ALLOWED_HOSTS = []
 
@@ -61,6 +64,14 @@ INSTALLED_APPS = (
     'news',
     'genomenews',
 )
+
+INSTALLED_APPS += (
+    'django.contrib.sites',
+    'threadedcomment',
+    'django.contrib.comments',
+)
+
+COMMENTS_APP = 'threadedcomment'
 
 MIDDLEWARE_CLASSES = (
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -102,6 +113,7 @@ USE_L10N = True
 
 USE_TZ = True
 
+SITE_ID = 1
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.7/howto/static-files/

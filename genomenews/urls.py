@@ -41,7 +41,6 @@ urlpatterns = patterns('',
     url(r'edit-profile/$',
         login_required(UserEditView.as_view()),
         name='edit_profile'),
-
     url(r'^post/(?P<pk>\d+)/$',
         PostDetailView.as_view(),
         name='link_detail'),
@@ -56,4 +55,8 @@ urlpatterns = patterns('',
     url(r'^submit$',
         login_required(PostSubmitView.as_view()),
         name='submit'),
+)
+
+urlpatterns += patterns('',
+    url(r'^comment/', include('threadedcomment.urls')),
 )

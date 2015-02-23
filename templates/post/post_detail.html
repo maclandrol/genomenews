@@ -1,51 +1,54 @@
 {% extends "base.html" %}
-{% block title %}{{object.title}} | Genome News{% endblock %}
+{% block title %}{{post.title}} | Genome News{% endblock %}
 {% load humanize %}
-{% block content %}
+{% load threadedcomments_tags %}
 
+{% block content %}
+{% get_comment_count for post as comment_count %}
 <div class="entry">
   <div class="left">
     <a href="" class="up">^</a>
   </div> <!-- /#left //-->
   <div class="right">
     <div class="top">
-      <span class="title"><a href="{{ object.url }}">{{ object.title }}</a></span>
+      <span class="title"><a href="{{ post.url }}">{{ post.title }}</a></span>
       <span class="domain">
-            {% if object.domain %}
-                ({{ object.domain }})
+            {% if post.domain %}
+                ({{ post.domain }})
             {% endif %}
     </span>
     </div> <!-- /#top //-->
     <div class="bot">
-      <span class="points">{{ object.karma }}</span> points
+      <span class="points">{{ post.karma }}</span> points
       by <span class="user">
-            <a href="{% url 'profile' slug=post.owner.user.username %}">{{ object.owner.user.username }}</a>
+            <a href="{% url 'profile' slug=post.owner.user.username %}">{{ post.owner.user.username }}</a>
         </span> <!-- change css code-->
       <span class="time">{{ post.submitted_date|naturaltime }}</span> |
-      <a class="discuss" href="{% url 'link_detail' pk=object.pk %}">{{ object.comment_count }} comments</a>
-      {% if object.owner.user == user %}
-     | <a class="update" href="{% url 'link_update' pk=object.pk %}">update</a> |
-      <a class="delete" href="{% url 'link_delete' pk=object.pk %}" >delete</a>
+      <a class="discuss" href="{% url 'link_detail' pk=post.pk %}">{{ comment_count }} comments</a>
+      {% if post.owner.user == user %}
+     | <a class="update" href="{% url 'link_update' pk=post.pk %}">update</a> |
+      <a class="delete" href="{% url 'link_delete' pk=post.pk %}" >delete</a>
       {% endif %}
     </div> <!-- /#bot //-->
   </div> <!-- /#right //-->
-
 </div> <!-- /#entry //-->
 
-  {% if object.description %}
-  <br><br>
+  {% if post.description %}
   <div class="description">
-      {{ object.description }}
+      {{ post.description }}
   </div><!-- /#description //-->
   {% endif %}
 
-
 <!-- The form to add a comment will be here -->
 
-<div class="comments">
-  <h5>Comments</h5>
+  <div class="commentform">
+  {% render_comment_form for post %}
+  </div>
   <!--The list of comment will be rendered here -->
-</div>
+  <div class="commentlist">
+  {% render_comment_list for post with 74 tree %}
+  </div>
+
 <hr />
 <div id="footer">
     <a href="RSS">RSS</a> |
