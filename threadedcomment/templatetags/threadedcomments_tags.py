@@ -4,6 +4,7 @@ from django.contrib.comments.templatetags.comments import BaseCommentNode
 from django.contrib import comments
 from django.conf import settings
 from threadedcomment.commentutils import annotate_tree_properties, fill_tree as real_fill_tree
+from threadedcomment import get_replyform_target
 
 PATH_SEPARATOR = getattr(settings, 'COMMENT_PATH_SEPARATOR', '/')
 register = template.Library()
@@ -417,3 +418,13 @@ def fill_tree(comments):
         {% endfor %}
     """
     return real_fill_tree(comments)
+
+
+@register.simple_tag
+def reply_form_target(comment_id):
+    """
+    Get the target URL for the comment form.
+    Example::
+        <form action="{% comment_form_target %}" method="post">
+    """
+    return get_replyform_target(comment_id)

@@ -6,7 +6,7 @@
 
 {% block content %}
 {% if form.errors %}
-<h4>{% blocktrans count counter=form.errors|length %}Please correct the error below{% plural %}Please correct the errors below{% endblocktrans %}</h4>
+<h4> Please try again.</h4>
 {% endif %}
 {% get_comment_count for post as comment_count %}
 <div class="entry">
@@ -48,7 +48,6 @@
         <p
           {% if field.errors %} class="error"{% endif %}
           {% ifequal field.name "honeypot" %} style="display:none;"{% endifequal %}>
-          {{ field.errors }}
           {{ field }}
         </p>
       {% endif %}

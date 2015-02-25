@@ -13,3 +13,6 @@ def get_form_target():
 
 def get_model_target(object_pk):
     return urlresolvers.reverse("link_detail", kwargs={"pk":object_pk})
+
+def get_replyform_target(comment_id):
+    return urlresolvers.reverse("detailcomment", kwargs={"comment_id":comment_id})

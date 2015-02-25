@@ -1,8 +1,10 @@
 {% load comments i18n %}
 {% load extrafilter %}
-<form action="{% comment_form_target %}" method="post">{% csrf_token %}
-<div id="commentformdiv">
+{% load threadedcomments_tags i18n %}
 
+
+<form action="{% reply_form_target comment.id %}?nopval=comment-error" method="post">{% csrf_token %}
+<div id="commentformdiv">
   {% if next %}<div><input type="hidden" name="next" value="{{ next }}" /></div>{% endif %}
   {% for field in form %}
     {% if field.is_hidden %}

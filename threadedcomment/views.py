@@ -35,6 +35,7 @@ def comment_view(request, next=None, using=None, object_pk=None, ctype=None, com
     if(comment_id is not None):
         try:
             curcomment = django_comment.get_model()._default_manager.using(using).get(pk=comment_id)
+            print curcomment
         except ObjectDoesNotExist:
             return CommentPostBadRequest(
                 "No object matching your comment %r " % (comment_id))
@@ -54,6 +55,7 @@ def post_comment(request, next=None, using=None, object_pk=None, ctype=None, cur
 
     """
 
+    print "LOOOOOOOOOOO\n\n"
     # Fill out some initial data fields from an authenticated user, if present
     data = request.POST.copy()
     # Look up the object we're trying to comment about
@@ -133,7 +135,7 @@ def post_comment(request, next=None, using=None, object_pk=None, ctype=None, cur
 
     else :
         ctx = {
-            "comment": form.data.get("comment", curcomment),
+            "comment": curcomment,
             "form": form,
             "post": target,
             "object_pk": object_pk,

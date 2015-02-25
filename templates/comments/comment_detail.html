@@ -1,13 +1,17 @@
 {% extends "base.html" %}
 {% block title %}{{comment.comment|truncatechars:25}} | Genome News{% endblock %}
+
 {% load humanize %}
 {% load comments %}
+{% load i18n %}
 {% load threadedcomments_tags %}
-
 {% load extrafilter %}
 
 {% block content %}
-{% get_comment_count for post as comment_count %}
+{% if form.errors %}
+<h4> Please try again.</h4>
+{% endif %}
+
 <div class="entry">
         <div class="comment">
           <div class="left">
