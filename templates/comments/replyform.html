@@ -1,6 +1,6 @@
 {% load comments i18n %}
 {% load extrafilter %}
-<form action="{% comment_form_target %}?object_pk={{post.pk}}&ctype={{post | object_content_type}}" method="post">{% csrf_token %}
+<form action="{% comment_form_target %}" method="post">{% csrf_token %}
 <div id="commentformdiv">
 
   {% if next %}<div><input type="hidden" name="next" value="{{ next }}" /></div>{% endif %}
@@ -17,9 +17,8 @@
     {% endif %}
   {% endfor %}
   <p id="commentbutton">
-    <input type="submit" name="submit" class="submit-post" value="{% trans "Add Comment" %}" />
-    <input type="hidden" name="next" value="{% url 'link_detail' pk=post.pk %}" />
-
+    <input type="submit" name="submit" value="Reply">
+    <input type="hidden" name="next" value="{% url 'detailcomment' comment_id=comment.id %}">
   </p>
  </div>
 </form>

@@ -17,11 +17,11 @@ from django.contrib.comments import signals
 from django.contrib.comments.views.comments import CommentPostBadRequest
 from django.contrib.comments.views.utils import next_redirect, confirmation_view
 from django.core.urlresolvers import reverse
-
+from threadedcomment import get_model_target
 from django.shortcuts import redirect
 
 @csrf_protect
-def comment_view(request, next=None, using=None, object_pk=None, ctype=None):
+def comment_view(request, next=None, using=None, object_pk=None, ctype=None, comment_id=None, templates=None):
     """
     Post a comment.
 
@@ -30,14 +30,26 @@ def comment_view(request, next=None, using=None, object_pk=None, ctype=None):
     On HTTP GET, we the model and id are requered
 
     """
+    # The current comment to render in a detailcomment view
+    curcomment = None
+    if(comment_id is not None):
+        try:
+            curcomment = django_comment.get_model()._default_manager.using(using).get(pk=comment_id)
+        except ObjectDoesNotExist:
+            return CommentPostBadRequest(
+                "No object matching your comment %r " % (comment_id))
+        except :
+            return CommentPostBadRequest(
+                "Could not get the target object for your comment: %r " % (comment_id))
+
     if request.method == "POST":
-        return post_comment(request, next, using, object_pk, ctype)
+        return post_comment(request, next, using, object_pk, ctype, curcomment, templates)
     else:
-        return get_comment_form(request, next, using, object_pk, ctype)
+        return get_comment_form(request, next, using, object_pk, ctype, curcomment, templates)
 
 @csrf_protect
 @require_POST
-def post_comment(request, next=None, using=None, object_pk=None, ctype=None):
+def post_comment(request, next=None, using=None, object_pk=None, ctype=None, curcomment=None, templates=None):
     """Post a comment.
 
     """
@@ -47,36 +59,40 @@ def post_comment(request, next=None, using=None, object_pk=None, ctype=None):
     # Look up the object we're trying to comment about
     ctype = data.get("content_type")
     object_pk = data.get("object_pk")
-
     # if user is not already authenticated, redirect to login
     if not request.user.is_authenticated():
         # and after login, redirect here again
-        return redirect('/login/?next=%s' % reverse('link_detail', kwargs={'pk':object_pk}))
+        return redirect('/login/?next=%s' % data.get("next"))
 
     if not data.get('name', ''):
         data["name"] = request.user.get_full_name() or request.user.get_username()
 
-    if ctype is None or object_pk is None:
-        return CommentPostBadRequest("Missing content_type or object_pk field.")
+    if  (ctype is None or object_pk is None) and curcomment is None:
+        return CommentPostBadRequest("Missing content_type, object_pk or comment_id field.")
 
-    try:
-        model = models.get_model(*ctype.split(".", 1))
-        target = model._default_manager.using(using).get(pk=object_pk)
-    except TypeError:
-        return CommentPostBadRequest(
-            "Invalid content_type value: %r" % escape(ctype))
-    except AttributeError:
-        return CommentPostBadRequest(
-            "The given content-type %r does not resolve to a valid model." % \
-                escape(ctype))
-    except ObjectDoesNotExist:
-        return CommentPostBadRequest(
-            "No object matching content-type %r and object PK %r exists." % \
-                (escape(ctype), escape(object_pk)))
-    except (ValueError, ValidationError) as e:
-        return CommentPostBadRequest(
-            "Attempting go get content-type %r and object PK %r exists raised %s" % \
-                (escape(ctype), escape(object_pk), e.__class__.__name__))
+    # we got the ctype and object_pk but not comment_id
+    if curcomment is None:
+        try:
+            model = models.get_model(*ctype.split(".", 1))
+            target = model._default_manager.using(using).get(pk=object_pk)
+        except TypeError:
+            return CommentPostBadRequest(
+                "Invalid content_type value: %r" % escape(ctype))
+        except AttributeError:
+            return CommentPostBadRequest(
+                "The given content-type %r does not resolve to a valid model." % \
+                    escape(ctype))
+        except ObjectDoesNotExist:
+            return CommentPostBadRequest(
+                "No object matching content-type %r and object PK %r exists." % \
+                    (escape(ctype), escape(object_pk)))
+        except (ValueError, ValidationError) as e:
+            return CommentPostBadRequest(
+                "Attempting go get content-type %r and object PK %r exists raised %s" % \
+                    (escape(ctype), escape(object_pk), e.__class__.__name__))
+
+    else :
+        target =  curcomment.content_object
 
     # Construct the comment form
     form = django_comment.get_form()(target, data=data)
@@ -116,81 +132,78 @@ def post_comment(request, next=None, using=None, object_pk=None, ctype=None):
             c=comment._get_pk_val())
 
     else :
+        ctx = {
+            "comment": form.data.get("comment", curcomment),
+            "form": form,
+            "post": target,
+            "object_pk": object_pk,
+            "ctype": ctype,
+            "next": data.get("next", next),
+        }
 
-        template_list = [
-            "comments/%s/%s/comment_post.html" % (model._meta.app_label, model._meta.module_name),
-            "comments/%s/comment_post.html" % model._meta.app_label,
-            "comments/comment_post.html",
-        ]
         return render_to_response(
-                template_list, {
-                    "comment": form.data.get("comment", ""),
-                    "form": form,
-                    "post": target,
-                    "object_pk": object_pk,
-                    "ctype": ctype,
-                    "next": data.get("next", next),
-                },
+                templates,
+                ctx,
                 RequestContext(request, {})
             )
 
 
 @csrf_protect
 @require_GET
-def get_comment_form(request, next=None, using=None, object_pk=None, ctype=None):
-    """Request the comment form
-    Hope this won't be use.This just assure that refreshing the error page
+def get_comment_form(request, next=None, using=None, object_pk=None, ctype=None, curcomment=None, templates=None):
+    """Request the comment by a get request
+    This also assure that refreshing the error page or the detailcomment
     won't let to an http 405 error
     """
     # this is a request.GET call
     ctype = request.GET.get("ctype")
-
     object_pk = request.GET.get("object_pk")
 
-    if ctype is None or object_pk is None:
-        return CommentPostBadRequest("Missing content_type or object_pk field.")
+    if  (ctype is None or object_pk is None) and curcomment is None:
+        return CommentPostBadRequest("Missing content_type, object_pk or comment_id field.")
 
-    try:
-        model = models.get_model(*ctype.split(".", 1))
-        target = model._default_manager.using(using).get(pk=int(object_pk))
-    except TypeError:
-        return CommentPostBadRequest(
-            "Invalid content_type value: %r" % escape(ctype))
-    except AttributeError:
-        return CommentPostBadRequest(
-            "The given content-type %r does not resolve to a valid model." % \
-                escape(ctype))
-    except ObjectDoesNotExist:
-        return CommentPostBadRequest(
-            "No object matching content-type %r and object PK %r exists." % \
-                (escape(ctype), escape(object_pk)))
-    except (ValueError, ValidationError) as e:
-        return CommentPostBadRequest(
-            "Attempting go get content-type %r and object PK %r exists raised %s" % \
-                (escape(ctype), escape(object_pk), e.__class__.__name__))
+    # we got the ctype and object_pk but not comment_id
+    if curcomment is None:
+        try:
+            model = models.get_model(*ctype.split(".", 1))
+            target = model._default_manager.using(using).get(pk=object_pk)
+        except TypeError:
+            return CommentPostBadRequest(
+                "Invalid content_type value: %r" % escape(ctype))
+        except AttributeError:
+            return CommentPostBadRequest(
+                "The given content-type %r does not resolve to a valid model." % \
+                    escape(ctype))
+        except ObjectDoesNotExist:
+            return CommentPostBadRequest(
+                "No object matching content-type %r and object PK %r exists." % \
+                    (escape(ctype), escape(object_pk)))
+        except (ValueError, ValidationError) as e:
+            return CommentPostBadRequest(
+                "Attempting go get content-type %r and object PK %r exists raised %s" % \
+                    (escape(ctype), escape(object_pk), e.__class__.__name__))
+
+    else :
+        target =  curcomment.content_object
 
     # we are sending a new clean comment form
     form = django_comment.get_form()(target)
-    template_list = [
-        "comments/%s/%s/comment_post.html" % (model._meta.app_label, model._meta.module_name),
-        "comments/%s/comment_post.html" % model._meta.app_label,
-        "comments/comment_post.html",
-    ]
+    ctx = {
+        "form": form,
+        "comment" : curcomment,
+        "post": target,
+        "object_pk": object_pk,
+        "ctype": ctype,
+        "next": get_model_target(object_pk) if curcomment is None else None,
+    }
+
+
     return render_to_response(
-            template_list, {
-                "form": form,
-                "post": target,
-                "object_pk": object_pk,
-                "ctype": ctype,
-                "next": reverse('link_detail', kwargs={'pk':object_pk}),
-            },
+            templates,
+            ctx,
             RequestContext(request, {})
         )
 
-@csrf_protect
-@require_POST
-def reply_to_comment():
-    pass
 
 def edit_comment():
     pass

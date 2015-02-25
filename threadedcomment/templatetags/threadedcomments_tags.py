@@ -56,8 +56,8 @@ class BaseThreadedCommentNode(BaseCommentNode):
         qs = super(BaseThreadedCommentNode, self).get_query_set(context)
         if self.parent:
             parent_id = self.parent.resolve(context, ignore_failures=True)
-            if(self.tree):
-                root_object = qs.filter(pk=parent_id).first()
+            root_object = qs.filter(pk=parent_id).first()
+            if(self.tree and root_object):
                 tree_path =root_object.tree_path
                 qs = qs.filter(tree_path__istartswith=tree_path+"/")
             else:

@@ -37,7 +37,7 @@
   </div> <!-- /#right //-->
 </div> <!-- /#entry //-->
 
-  <div class="commentform">
+<div class="commentform">
 {% load comments %}
   <form action="{% comment_form_target %}?object_pk={{object_pk}}&ctype={{ctype}}&nopval=comment-error" method="post">{% csrf_token %}
     {% if next %}<div><input type="hidden" name="next" value="{{ next }}" /></div>{% endif %}

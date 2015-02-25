@@ -1,36 +1,52 @@
 {% extends "base.html" %}
-{% block title %}{{parent.comment|truncatechars:25}} | Genome News{% endblock %}
+{% block title %}{{comment.comment|truncatechars:25}} | Genome News{% endblock %}
 {% load humanize %}
+{% load comments %}
 {% load threadedcomments_tags %}
+
 {% load extrafilter %}
 
 {% block content %}
 {% get_comment_count for post as comment_count %}
-<div id="comments">
-        <ul>
-        <li id="c{{ parent.id }}">{# c## is used by the absolute URL of the Comment model, so keep that as it is. #}
-            <div class="comment">
-              <div class="left">
+<div class="entry">
+        <div class="comment">
+          <div class="left">
                 <a href="" class="up">^</a>
-              </div> <!-- /#left //-->
-              <div class="right">
-                <div class="commentdetails">
+          </div> <!-- /#left //-->
+          <div class="right">
+              <div class="commentdetails">
                 <span class="user">
-                  <a href="{% url 'profile' slug=parent.user.username %}">{{ parent.user.username }}</a>
+                  <a href="{% url 'profile' slug=comment.user.username %}">{{ comment.user.username }}</a>
               </span> <!-- user-->
-                  <span class="time">{{ parent.submit_date|naturaltime }}</span>
-                  {% if parent.user == user %}
-                 | <a class="update" href="{% url 'link_update' pk=object.pk %}">edit</a> |
-                  <a class="delete" href="{% url 'comments_delete' c=object.pk %}" >delete</a>
+                  <span class="time">{{ comment.submit_date|naturaltime }}</span>
+                  | <a class="parent" href =
+                  {% if comment.parent %}
+                  "{% url 'detailcomment' comment_id=comment.parent.pk %}"
+                  {% else %}
+                  "{% url 'link_detail' pk=post.pk %}"
+                  {% endif %}
+                  >parent</a>
+                  {% if comment.user == user %}
+                 | <a class="update" href="#">edit</a> |
+                  <a class="delete" href="#" >delete</a>
                   {% endif %}
                 </div> <!-- /#commentdetails //-->
                 <div class="text">
-                    {{ parent.comment|linebreaks }}
+                    {{ comment.comment|linebreaks }}
                 </div> <!-- /#text //-->
-              </div> <!-- /#right //-->
-          </div> <!-- /#comment //-->
-        </li></ul>
+            </div> <!-- /#right //-->
+        </div> <!-- /#comment //-->
 </div>
+
+<br>
 <div class="commentform">
-    {% render_comment_form for object with parent.id %}
+    {% get_comment_form for post as form with comment.id %}
+    {% include "comments/replyform.html" %}
 </div>
+
+<div class="commentlist">
+    {% render_comment_list for post with comment.id tree %}
+</div>
+<br>
+
+{% endblock %}

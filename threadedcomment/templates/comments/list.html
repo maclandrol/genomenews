@@ -32,7 +32,7 @@
                 <div class="text">
                     {{ comment.comment|linebreaks }}
                 </div> <!-- /#text //-->
-                <a class="reply" href="#">reply</a>
+                <a class="reply" href="{% url 'detailcomment' comment_id=comment.id%}">reply</a>
               </div> <!-- /#right //-->
           </div> <!-- /#comment //-->
             {% for close in comment.close %}</li></ul>{% endfor %}

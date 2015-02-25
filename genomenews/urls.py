@@ -10,6 +10,14 @@ from django.contrib.auth.decorators import login_required
 # Find admin auto
 admin.autodiscover()
 
+comment_template = [
+    "comments/comment_post.html",
+]
+
+det_comment_template = [
+    "comments/comment_detail.html",
+]
+
 urlpatterns = patterns('',
     # Examples:
     # url(r'^$', 'genomenews.views.home', name='home'),
@@ -58,5 +66,7 @@ urlpatterns = patterns('',
 )
 
 urlpatterns += patterns('',
-    url(r'^comments/', include('threadedcomment.urls')),
+    url(r'^comments$', 'threadedcomment.views.comment_view', {"templates":comment_template}, name='postcomment'),
+    url(r'^reply/(?P<comment_id>\d+)/$', 'threadedcomment.views.comment_view', {"templates":det_comment_template}, name='detailcomment'),
+    url(r'^comments', include('threadedcomment.urls')),
 )
