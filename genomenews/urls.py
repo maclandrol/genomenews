@@ -5,6 +5,7 @@ from django.conf.urls.static import static
 from news.views import UserDetailView, UserEditView
 from news.views import PostSubmitView, PostDetailView
 from news.views import PostUpdateView, PostDeleteView
+from django.contrib.comments.feeds import LatestCommentFeed
 from django.contrib.auth.decorators import login_required
 
 # Find admin auto
@@ -69,4 +70,6 @@ urlpatterns += patterns('',
     url(r'^comments$', 'threadedcomment.views.comment_view', {"templates":comment_template}, name='postcomment'),
     url(r'^reply/(?P<comment_id>\d+)/$', 'threadedcomment.views.comment_view', {"templates":det_comment_template}, name='detailcomment'),
     url(r'^comments', include('threadedcomment.urls')),
+    url(r'^newcomments/$', LatestCommentFeed(), name="commentfeed"),
+
 )
