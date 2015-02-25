@@ -27,7 +27,7 @@
       by <span class="user">
             <a href="{% url 'profile' slug=post.owner.user.username %}">{{ post.owner.user.username }}</a>
         </span> <!-- change css code-->
-      <span class="time">{{ post.submitted_date|naturaltime }}</span> |
+      <span class="time">{{ post.submitted_date|naturaltime|upto:","|add:" ago" }}</span> |
       <a class="discuss" href="{% url 'link_detail' pk=post.pk %}">{{ comment_count }} comments</a>
       {% if post.owner.user == user %}
      | <a class="update" href="{% url 'link_update' pk=post.pk %}">update</a> |
