@@ -3,8 +3,11 @@ from django.conf import settings
 from django.conf.urls.static import static
 
 urlpatterns = patterns('',
-    url(r'^$', include('django.contrib.comments.urls')),
-    url(r'^$', 'threadedcomment.views.post_comment', name='postcomment'),
-    url(r'^(?P<pk>\d+)/$','threadedcomment.views.post_comment', name='detailcomment' )
-
+    url(r'^$', 'threadedcomment.views.comment_view', name='postcomment'),
+    url(r'^/error_o/$','threadedcomment.views.reply_to_comment', name='detailcomment' ),
+    url(r'^del/(?P<comment_id>\d+)/$', 'django.contrib.comments.views.moderation.delete',name='comments-delete'),
+    url(r'^deleted/$', 'django.contrib.comments.views.moderation.delete_done',  name='comments-delete-done'),
+)
+urlpatterns += patterns('',
+    url(r'^cr/(\d+)/(.+)/$', 'django.contrib.contenttypes.views.shortcut', name='comments-url-redirect'),
 )

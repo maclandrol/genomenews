@@ -1,5 +1,6 @@
 from django import template
 from django.template.defaultfilters import stringfilter
+from django.contrib.contenttypes.models import ContentType
 
 register = template.Library()
 
@@ -12,3 +13,7 @@ def upto(value, delimiter=None):
     """
     return value.split(delimiter)[0]
 upto.is_safe = True
+
+@register.filter
+def object_content_type(value):
+    return "%s.%s"%(value.__class__._meta.app_label, value.__class__._meta.object_name)

@@ -7,7 +7,7 @@
 {% load humanize %}
 
 <div id="comments">
-    {% for comment in comment_list|fill_tree|annotate_tree %}
+    {% for comment in comment_list|annotate_tree %}
         {% if comment.open %}
             <ul>
         {% else %}
@@ -25,14 +25,14 @@
               </span> <!-- user-->
                   <span class="time">{{ comment.submit_date|naturaltime|upto:","|add:" ago" }}</span>
                   {% if comment.user == user %}
-                 | <a class="update" href="{% url 'link_update' pk=object.pk %}">edit</a> |
-                  <a class="delete" href="{% url 'link_delete' pk=object.pk %}" >delete</a>
+                 | <a class="update" href="#"">edit</a> |
+                  <a class="delete" href="{% url 'comments-delete' comment_id=comment.id %}" >delete</a>
                   {% endif %}
                 </div> <!-- /#commentdetails //-->
                 <div class="text">
                     {{ comment.comment|linebreaks }}
                 </div> <!-- /#text //-->
-                <a class="reply" href="{% url 'link_update' pk=object.pk %}">reply</a>
+                <a class="reply" href="#">reply</a>
               </div> <!-- /#right //-->
           </div> <!-- /#comment //-->
             {% for close in comment.close %}</li></ul>{% endfor %}

@@ -21,7 +21,7 @@
                   <span class="time">{{ parent.submit_date|naturaltime }}</span>
                   {% if parent.user == user %}
                  | <a class="update" href="{% url 'link_update' pk=object.pk %}">edit</a> |
-                  <a class="delete" href="{% url 'link_delete' pk=object.pk %}" >delete</a>
+                  <a class="delete" href="{% url 'comments_delete' c=object.pk %}" >delete</a>
                   {% endif %}
                 </div> <!-- /#commentdetails //-->
                 <div class="text">

@@ -58,5 +58,5 @@ urlpatterns = patterns('',
 )
 
 urlpatterns += patterns('',
-    url(r'^comment/', include('threadedcomment.urls')),
+    url(r'^comments/', include('threadedcomment.urls')),
 )

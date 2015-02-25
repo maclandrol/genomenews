@@ -34,10 +34,6 @@ class ThreadedComment(Comment):
     def root_path(self):
         return ThreadedComment.objects.filter(pk__in=self.tree_path.split(PATH_SEPARATOR)[:-1])
 
-    @property
-    def child_list(self):
-        return ThreadedComment.objects.filter(parent_id=self.id)
-
     def upvote(self, user):
         CommentVoteModel = get_vote_model()
         if CommentVoteModel is not None:

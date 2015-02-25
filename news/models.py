@@ -6,6 +6,7 @@ from django.contrib.auth.models import User
 from django.utils.timezone import now
 from django.core.urlresolvers import reverse
 from django.db.models import F
+from django.contrib.comments.moderation import CommentModerator, moderator
 from threadedcomment.models import ThreadedComment
 
 
@@ -48,6 +49,9 @@ class Post(models.Model):
     description = models.TextField(null=True)
     karma = models.IntegerField(default=0)
     is_self_post = models.BooleanField(default=False)
+    # We enable comment on a post by default
+    # changin this to false will desactivate commenting on a post
+    enable_comments = models.BooleanField(default=True)
 
     def upvote(self, user):
         # Add the PostVote to the database.
@@ -122,5 +126,19 @@ class PostVote(Vote):
 
 class CommentVote(Vote):
     """An upvote for the comment of a post.
+
     """
     target = models.ForeignKey(ThreadedComment)
+
+
+class PostModerator(CommentModerator):
+    """A class for comment moderation on a post.
+
+    When the enable_comment is set to false, we will deleted any new comment
+    on a post. This will serve as a moderation system.
+    """
+    enable_field = 'enable_comments'
+    # we can also add a close after field, so comment will be desactivate on
+    # a post after a certain date. But I think, this is not a great idea.
+
+moderator.register(Post, PostModerator)

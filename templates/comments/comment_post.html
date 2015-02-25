@@ -1,9 +1,13 @@
 {% extends "base.html" %}
-{% block title %}Genome news | {{post.title}}{% endblock %}
+{% block title %}Genome News | Add comment{% endblock %}
 {% load humanize %}
+{% load i18n %}
 {% load threadedcomments_tags %}
 
 {% block content %}
+{% if form.errors %}
+<h4>{% blocktrans count counter=form.errors|length %}Please correct the error below{% plural %}Please correct the errors below{% endblocktrans %}</h4>
+{% endif %}
 {% get_comment_count for post as comment_count %}
 <div class="entry">
   <div class="left">
@@ -33,26 +37,26 @@
   </div> <!-- /#right //-->
 </div> <!-- /#entry //-->
 
-  {% if post.description %}
-  <div class="description">
-      {{ post.description }}
-  </div><!-- /#description //-->
-  {% endif %}
-
-<!-- The form to add a comment will be here -->
-
   <div class="commentform">
-  {% render_comment_form for post %}
-  </div>
-  <!--The list of comment will be rendered here -->
-  <div class="commentlist">
-  {% render_comment_list for post %}
-  </div>
-
-<hr />
-<div id="footer">
-    <a href="RSS">RSS</a> |
-    <a href="">About</a>
-</div>
-
+{% load comments %}
+  <form action="{% comment_form_target %}?object_pk={{object_pk}}&ctype={{ctype}}&nopval=comment-error" method="post">{% csrf_token %}
+    {% if next %}<div><input type="hidden" name="next" value="{{ next }}" /></div>{% endif %}
+    {% for field in form %}
+      {% if field.is_hidden %}
+        <div>{{ field }}</div>
+      {% else %}
+        <p
+          {% if field.errors %} class="error"{% endif %}
+          {% ifequal field.name "honeypot" %} style="display:none;"{% endifequal %}>
+          {{ field.errors }}
+          {{ field }}
+        </p>
+      {% endif %}
+    {% endfor %}
+    <p class="submit">
+    <input type="submit" name="submit" class="submit-post" value="{% trans "Add comment" %}" />
+    </p>
+    <br>
+  </form>
 {% endblock %}
+</div>
