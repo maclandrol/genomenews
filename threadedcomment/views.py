@@ -4,21 +4,21 @@ from django import http
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import models
-from django.shortcuts import render_to_response
 from django.template import RequestContext
 from django.template.loader import render_to_string
 from django.utils.html import escape
 from django.views.decorators.csrf import csrf_protect
 from django.views.decorators.http import require_POST, require_GET
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, permission_required
 
 import django.contrib.comments as django_comment
 from django.contrib.comments import signals
 from django.contrib.comments.views.comments import CommentPostBadRequest
+
 from django.contrib.comments.views.utils import next_redirect, confirmation_view
 from django.core.urlresolvers import reverse
 from threadedcomment import get_model_target
-from django.shortcuts import redirect
+from django.shortcuts import redirect, get_object_or_404, render_to_response, Http404
 
 @csrf_protect
 def comment_view(request, next=None, using=None, object_pk=None, ctype=None, comment_id=None, templates=None):
@@ -46,6 +46,7 @@ def comment_view(request, next=None, using=None, object_pk=None, ctype=None, com
         return post_comment(request, next, using, object_pk, ctype, curcomment, templates)
     else:
         return get_comment_form(request, next, using, object_pk, ctype, curcomment, templates)
+
 
 @csrf_protect
 @require_POST
@@ -184,6 +185,9 @@ def get_comment_form(request, next=None, using=None, object_pk=None, ctype=None,
                     (escape(ctype), escape(object_pk), e.__class__.__name__))
 
     else :
+        if curcomment.is_removed or curcomment.is_moderated:
+            # do not display reply form in those two cases
+            raise Http404
         target =  curcomment.content_object
 
     # we are sending a new clean comment form
@@ -197,7 +201,6 @@ def get_comment_form(request, next=None, using=None, object_pk=None, ctype=None,
         "next": get_model_target(object_pk) if curcomment is None else None,
     }
 
-
     return render_to_response(
             templates,
             ctx,
@@ -205,10 +208,120 @@ def get_comment_form(request, next=None, using=None, object_pk=None, ctype=None,
         )
 
 
-def edit_comment():
-    pass
+@login_required
+def delete_comment(request, comment_id=None, next=None, moderate=False, template='comments/delete.html'):
+    """
+    Deletes a comment. Confirmation on GET, action on POST. User should have the
+    "can_moderate comments" permission or own the comment
+    """
 
-comment_done = confirmation_view(
-    template="comments/posted.html",
-    doc="""Display a "comment was posted" success page."""
-)
+    comment = get_object_or_404(django_comment.get_model(), pk=comment_id, site__pk=settings.SITE_ID)
+
+    if request.user.has_perm("django.contrib.comments.can_moderate") and moderate:
+        return mod_delete(request, comment, next, template)
+
+    elif comment.user == request.user:
+        # Delete on POST
+        if request.method == 'POST':
+            # Flag the comment as deleted instead of actually deleting it.
+            perform_delete(request, comment)
+            return next_redirect(request, fallback=next or 'comments-delete-done',
+                c=comment.pk)
+
+        # Render a confirmation form on GET
+        else:
+            return render_to_response(template,
+                {'comment': comment, 'post': comment.content_object, "next": next},
+                    RequestContext(request)
+            )
+
+    else:
+        raise Http404
+
+@csrf_protect
+@permission_required("django.contrib.comments.can_moderate")
+def mod_delete(request, comment, next=None, template='comments/delete.html'):
+    """
+    Moderator cannot delete a comment, A comment is the propriety of the poster
+    But moderator can hide a comment by moderating it...
+    "can_moderate comments" permission required.
+    Templates: :template:`comments/delete.html`,
+    Context:
+        comment
+            the flagged `comments.comment` object
+    """
+
+    # Delete on POST
+    if request.method == 'POST':
+        # Flag the comment as deleted instead of actually deleting it.
+        perform_moderation(request, comment)
+        return next_redirect(request, fallback=next or 'comments-delete-done',
+            c=comment.pk)
+
+
+    # Render a confirmation form on GET
+    else:
+        print RequestContext(request)
+        return render_to_response(template,
+            {'comment': comment, 'post': comment.content_object, "next": next, "moderate":True},
+                RequestContext(request)
+        )
+
+
+def perform_moderation(request, comment):
+    """
+    Actually perform the moderation of a comment from a request.
+    """
+    flag, created = django_comment.models.CommentFlag.objects.get_or_create(
+        comment = comment,
+        user    = request.user,
+        flag    = django_comment.models.CommentFlag.SUGGEST_REMOVAL
+    )
+
+    comment.is_moderated = True
+    comment.save()
+
+    signals.comment_was_flagged.send(
+        sender  = comment.__class__,
+        comment = comment,
+        flag    = flag,
+        created = created,
+        request = request,
+    )
+
+
+def perform_approve(request, comment):
+    flag, created = django_comment.models.CommentFlag.objects.get_or_create(
+        comment = comment,
+        user    = request.user,
+        flag    = django_comment.models.CommentFlag.MODERATOR_APPROVAL,
+    )
+
+    comment.is_removed = False
+    comment.is_public = True
+    comment.is_moderated = False
+    comment.save()
+
+    signals.comment_was_flagged.send(
+        sender  = comment.__class__,
+        comment = comment,
+        flag    = flag,
+        created = created,
+        request = request,
+    )
+
+def perform_delete(request, comment):
+    flag, created = django_comment.models.CommentFlag.objects.get_or_create(
+        comment = comment,
+        user    = request.user,
+        flag    = django_comment.models.CommentFlag.MODERATOR_DELETION
+    )
+    comment.is_deleted = True
+    comment.save()
+    signals.comment_was_flagged.send(
+        sender  = comment.__class__,
+        comment = comment,
+        flag    = flag,
+        created = created,
+        request = request,
+    )

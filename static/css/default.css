@@ -212,7 +212,9 @@ hr {
 
 .comment .commentdetails{
     font-size: 8pt;
+    display: inline-block;
     margin : 0px;
+    vertical-align: baseline;
 }
 
 .comment .text{
@@ -228,4 +230,14 @@ hr {
     padding:0px;
     margin-top : 0px;
     text-decoration : underline;
+}
+
+.deleted_comment{
+    color: #828282;
+    padding-top: 5px;
+    padding-bottom: 5px;
+}
+
+.deleted_comment > .no_upvote{
+    color : red;
 }

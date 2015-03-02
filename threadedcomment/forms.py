@@ -67,7 +67,8 @@ class ThreadedCommentDetailsForm(CommentSecurityForm):
     def check_for_duplicate_comment(self, new):
         """
         Check that a submitted comment isn't a duplicate. This might be caused
-        by someone posting a comment twice. If it is a dup, silently return the *previous* comment.
+        by someone posting a comment twice. If it is a dup, mark as a duplicate
+        then do nothing.
         """
         possible_duplicates = self.get_comment_model()._default_manager.using(
             self.target_object._state.db

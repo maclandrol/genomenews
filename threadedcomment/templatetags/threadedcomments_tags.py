@@ -3,6 +3,7 @@ from django.template.loader import render_to_string
 from django.contrib.comments.templatetags.comments import BaseCommentNode
 from django.contrib import comments
 from django.conf import settings
+from django.utils.safestring import mark_safe
 from threadedcomment.commentutils import annotate_tree_properties, fill_tree as real_fill_tree
 from threadedcomment import get_replyform_target
 
@@ -63,6 +64,9 @@ class BaseThreadedCommentNode(BaseCommentNode):
                 qs = qs.filter(tree_path__istartswith=tree_path+"/")
             else:
                 qs = qs.filter(parent_id=parent_id)
+            # TODO : order by karma while keeping the tree structure
+            #qs = qs.order_by('-karma')
+
         if self.flat:
             qs = qs.order_by('-submit_date')
         elif self.karma:
@@ -418,6 +422,21 @@ def fill_tree(comments):
         {% endfor %}
     """
     return real_fill_tree(comments)
+
+@register.filter
+def safe_comment(comment):
+    """
+    Mark comment as safe (deactivate the html escape filter and enable
+    markdown or some basic html tag
+
+    Syntax::
+
+    comment|safe_comment %}
+
+    """
+    # TODO: maybe enable markdown. Right now, this just return the original
+    # comment
+    return comment
 
 
 @register.simple_tag

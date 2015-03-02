@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}{{comment.comment|truncatechars:25}} | Genome News{% endblock %}
+{% block title %}Confirm comment deletion | Genome News{% endblock %}
 
 {% load humanize %}
 {% load comments %}
@@ -44,7 +44,7 @@
                   {% endif %}
                 </div> <!-- /#commentdetails //-->
                 <div class="text">
-                    {{ comment.comment|linebreaks }}
+                    {{ comment.comment|safe_comment|linebreaks }}
                 </div> <!-- /#text //-->
             </div> <!-- /#right //-->
             {% endif %}
@@ -53,12 +53,14 @@
 
 <br>
 <div class="commentform">
-    {% get_comment_form for post as form with comment.id %}
-    {% include "comments/replyform.html" %}
-</div>
+<p>Do you want this to be deleted?</p>
+<form method="post" action={% if moderate %}"{% url 'comments-moderate' comment_id=comment.pk %}"
+    {% else %}"{% url 'comments-delete' comment_id=comment.pk %}"{% endif %}>
+  {% csrf_token %}
+  <p><input type="submit" value="Yes" /></p>
+  <input type="hidden" name="next" value="{% url 'link_detail' pk=post.pk %}" />
 
-<div class="commentlist">
-    {% render_comment_list for post with comment.id tree %}
+</form>
 </div>
 <br>
 

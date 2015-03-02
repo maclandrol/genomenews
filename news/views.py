@@ -4,7 +4,7 @@ from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.contrib import messages
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login, get_user_model
-from django.http import HttpResponse, HttpResponseRedirect
+from django.http import HttpResponse, HttpResponseRedirect, Http404
 from django.template import RequestContext
 from django.views.generic import DetailView, UpdateView
 from django.views.generic import DeleteView, CreateView
@@ -195,6 +195,10 @@ class PostUpdateView(UpdateView):
     form_class = PostForm
     template_name = "post/post_form.html"
 
+    def get_queryset(self):
+        """User should only modify data he own."""
+        qs = super(PostUpdateView, self).get_queryset()
+        return qs.filter(owner=self.request.user)
 
 class PostDeleteView(DeleteView):
     """View for deleting a post
@@ -205,3 +209,10 @@ class PostDeleteView(DeleteView):
     # FIXME: Don't know if redirecting to home after deleting a post
     # is the best way...
     success_url = reverse_lazy("home")
+
+    def get_object(self, queryset=None):
+        """ Object can only be deleted by its owner """
+        post = super(PostDeleteView, self).get_object()
+        if not post.owner == self.request.user:
+            raise Http404
+        return post

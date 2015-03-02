@@ -2,6 +2,7 @@
 {% block title %}Genome news | {{post.title}}{% endblock %}
 {% load humanize %}
 {% load threadedcomments_tags %}
+{% load extrafilter %}
 
 {% block content %}
 {% get_comment_count for post as comment_count %}

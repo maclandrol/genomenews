@@ -19,6 +19,10 @@ class ThreadedComment(Comment):
     last_child = models.ForeignKey('self', null=True, blank=True, on_delete=models.SET_NULL, verbose_name=utl('Last child'))
     tree_path = models.TextField(utl('Tree path'), editable=False, db_index=True)
     duplicate = models.BooleanField(utl('Duplicate'), default=False)
+    is_moderated = models.BooleanField(utl('Moderated'), default=False)
+    # django_comment is_removed field fuck-up the template rendering pagination
+    # so we are going to add a custom is_deleted field 
+    is_deleted = models.BooleanField(utl('Deleted'), default=False)
     objects = ThreadedCommentManager()
     karma = models.IntegerField(utl('karma'), default=0)
 
@@ -42,31 +46,20 @@ class ThreadedComment(Comment):
 
     def save(self, *args, **kwargs):
         skip_tree_path = kwargs.pop('skip_tree_path', False)
+        super(ThreadedComment, self).save(*args, **kwargs)
         if skip_tree_path:
-            super(ThreadedComment, self).save(*args, **kwargs)
             return None
-
-        with transaction.atomic():
-            if self.submit_date is None: # for comment save
-                self.submit_date = timezone.now()
-            Comment.objects.bulk_create([self])
-            c = Comment.objects.latest("id")
-
-        self.id = self.pk = self.comment_ptr_id = c.id
 
         tree_path = unicode(self.pk).zfill(PATH_DIGITS)
         if self.parent:
             tree_path = PATH_SEPARATOR.join((self.parent.tree_path, tree_path))
 
-            # have to create, because last_child_id cant be referer to non exist record
-            cursor = connection.cursor()
-            cursor.execute('''
-                INSERT INTO threadedcomments_comment (comment_ptr_id, parent_id, tree_path, duplicate, karma)
-                VALUES (%d, %d, '%s', '%s', %d);''' % (self.id, self.parent_id, tree_path, self.duplicate, self.karma))
+            self.parent.last_child = self
             ThreadedComment.objects.filter(pk=self.parent_id).update(last_child=self)
 
         self.tree_path = tree_path
-        super(ThreadedComment, self).save(*args, **kwargs)
+        ThreadedComment.objects.filter(pk=self.pk).update(tree_path=self.tree_path)
+
 
 
 

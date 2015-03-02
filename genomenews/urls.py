@@ -69,7 +69,7 @@ urlpatterns = patterns('',
 urlpatterns += patterns('',
     url(r'^comments$', 'threadedcomment.views.comment_view', {"templates":comment_template}, name='postcomment'),
     url(r'^reply/(?P<comment_id>\d+)/$', 'threadedcomment.views.comment_view', {"templates":det_comment_template}, name='detailcomment'),
-    url(r'^comments', include('threadedcomment.urls')),
+    url(r'^comments/', include('threadedcomment.urls')),
     url(r'^newcomments/$', LatestCommentFeed(), name="commentfeed"),
 
 )

@@ -5,6 +5,7 @@
 {% load threadedcomments_tags %}
 {% load extrafilter %}
 {% load humanize %}
+{% load extrafilter %}
 
 <div id="comments">
     {% for comment in comment_list|annotate_tree %}
@@ -15,6 +16,11 @@
         {% endif %}
         <li id="c{{ comment.id }}">{# c## is used by the absolute URL of the Comment model, so keep that as it is. #}
             <div class="comment">
+                {% if comment.is_deleted or comment.is_moderated %}
+                <div class="deleted_comment">
+                  <span class="no_upvote">* </span> [deleted]
+              </div>
+                {% else %}
               <div class="left">
                 <a href="" class="up">^</a>
               </div> <!-- /#left //-->
@@ -25,15 +31,19 @@
               </span> <!-- user-->
                   <span class="time">{{ comment.submit_date|naturaltime|upto:","|add:" ago" }}</span>
                   {% if comment.user == user %}
-                 | <a class="update" href="#"">edit</a> |
+                 | <a class="update" href="#">edit</a> |
                   <a class="delete" href="{% url 'comments-delete' comment_id=comment.id %}" >delete</a>
+                  {% endif %}
+                  {% if perms.threadedcomment.can_moderate %}|
+                  <a class="moderate" href="{% url 'comments-moderate' comment_id=comment.pk %}" >moderate</a>
                   {% endif %}
                 </div> <!-- /#commentdetails //-->
                 <div class="text">
-                    {{ comment.comment|linebreaks }}
+                    {{ comment.comment|safe_comment|linebreaks }}
                 </div> <!-- /#text //-->
                 <a class="reply" href="{% url 'detailcomment' comment_id=comment.id%}">reply</a>
               </div> <!-- /#right //-->
+              {% endif %}
           </div> <!-- /#comment //-->
             {% for close in comment.close %}</li></ul>{% endfor %}
     {% endfor %}
